@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soal Selidik Kepuasan Pesakit</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg-color: #ffffff;
+            --card-secondary-bg-color: #f8f9fa;
+            --border-color: #dee2e6;
+            --primary-color: #007bff;
+            --header-text-color: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --button-secondary-bg: #6c757d;
+            --score-green: #28a745;
+            --score-yellow: #ffc107;
+            --score-red: #dc3545;
+            --input-bg: #ffffff;
+            --input-text: #212529;
+            --disabled-bg: #e9ecef;
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --bg-color: #121212 !important;
+            --text-color: #f0f0f0 !important;
+            --card-bg-color: #1e1e1e !important;
+            --card-secondary-bg-color: #2c2c2c !important;
+            --border-color: #555555 !important;
+            --primary-color: #58a6ff !important;
+            --header-text-color: #ffffff !important;
+            --shadow-color: rgba(0, 0, 0, 0.6) !important;
+            --button-secondary-bg: #484f58 !important;
+            --input-bg: #2c2c2c !important;
+            --input-text: #ffffff !important;
+            --disabled-bg: #3a3a3a !important;
+        }
+
+        /* Scoped Container Styling */
+        #survey-wrapper {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 1rem auto;
+            padding: 0;
+            max-width: 95%;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px var(--shadow-color);
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+            font-size: 16px !important; 
+        }
+
+        #survey-wrapper *, #survey-wrapper *::before, #survey-wrapper *::after {
+            box-sizing: border-box;
+        }
+
+        #survey-wrapper header { 
+            text-align: center; 
+            background-color: var(--primary-color) !important; 
+            color: var(--header-text-color) !important; 
+            padding: 2rem 1.5rem; 
+        }
+        #survey-wrapper header h1 { 
+            margin: 0; 
+            font-size: 2rem !important; 
+            color: var(--header-text-color) !important;
+            line-height: 1.2 !important;
+        }
+        #survey-wrapper main { padding: 2rem; }
+        
+        .form-section {
+            background-color: var(--card-secondary-bg-color) !important;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+            transition: background-color 0.3s;
+        }
+
+        .survey-section-header { 
+            margin-top: 0; 
+            font-size: 1.35rem !important; 
+            font-weight: 700 !important;
+            color: var(--primary-color) !important; 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 0.75rem; 
+            margin-bottom: 1.5rem; 
+            line-height: 1.4 !important;
+        }
+        
+        .introduction-text {
+            background-color: var(--card-secondary-bg-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 1rem !important;
+        }
+        .introduction-text ul {
+            margin: 0;
+            padding-left: 1.5rem;
+            list-style-type: disc;
+        }
+        .introduction-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label, .form-group legend {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color) !important;
+            font-size: 1.05rem !important;
+        }
+
+        .form-group input[type="text"], 
+        textarea, 
+        select,
+        #language-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color) !important;
+            border-radius: 8px;
+            background-color: var(--input-bg) !important;
+            color: var(--input-text) !important;
+            font-size: 1rem !important;
+            transition: border-color 0.3s;
+        }
+        
+        /* New Locked/Disabled Logic */
+        .locked-input {
+            background-color: var(--disabled-bg) !important;
+            pointer-events: none; /* Prevents clicking/changing */
+            opacity: 0.8;
+        }
+        
+        .select2-container.locked-input .select2-selection {
+            background-color: var(--disabled-bg) !important;
+            pointer-events: none;
+        }
+
+        .form-group input[type="text"]:focus, 
+        textarea:focus, 
+        select:focus {
+            border-color: var(--primary-color) !important;
+            outline: none;
+        }
+
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        .radio-grid label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--card-bg-color);
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        [data-theme="dark"] .radio-grid label {
+            background-color: #2c2c2c !important;
+            border-color: #444 !important;
+        }
+        
+        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .controls-left { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .controls button { padding: 0.75rem 1rem; font-size: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--card-bg-color); color: var(--text-color); cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+        
+        #dark-mode-toggle { font-size: 1.5rem; padding: 0.5rem 0.75rem; background: transparent !important; border: none !important; color: var(--text-color) !important; }
+        #print-button { background-color: var(--button-secondary-bg) !important; color: white !important; }
+        #print-button:hover { opacity: 0.9; }
+		#reset-button {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            background-color: #dc3545 !important;
+            color: white !important;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #reset-button:hover { background-color: #c82333 !important; }
+
+        #language-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c757d'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 1.2rem !important;
+            width: auto;
+            min-width: 200px;
+        }
+
+        /* Select2 Dark Mode Fixes */
+        [data-theme="dark"] .select2-container--bootstrap-5 .select2-selection {
+            background-color: var(--input-bg) !important;
+            color: var(--input-text) !important;
+            border-color: var(--border-color) !important;
+        }
+        [data-theme="dark"] .select2-container--bootstrap-5 .select2-selection__rendered {
+            color: var(--input-text) !important;
+        }
+        [data-theme="dark"] .select2-dropdown {
+            background-color: var(--card-bg-color) !important;
+            color: var(--input-text) !important;
+            border-color: var(--border-color) !important;
+        }
+        [data-theme="dark"] .select2-results__option {
+            color: var(--input-text) !important;
+        }
+        [data-theme="dark"] .select2-results__option--highlighted {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        .header-logo {
+            max-width: 60px;
+            height: auto;
+            display: block;
+            margin: 0 auto 1rem auto;
+        }
+
+        /* Likert Scale */
+        .likert-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 1rem; }
+        .likert-scale label { 
+            display: flex; flex-direction: column; align-items: center; text-align: center; 
+            font-size: 1rem !important; 
+            cursor: pointer; padding: 1rem 0.5rem; border-radius: 8px; 
+            transition: background-color 0.2s ease; 
+            border: 1px solid transparent;
+        }
+        .likert-scale label:hover { background-color: rgba(128,128,128,0.1); border-color: var(--border-color); }
+        .likert-option { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-weight: 500; }
+        .likert-option input[type="radio"] { transform: scale(1.3); }
+        .emoji { font-size: 2.2rem; margin-bottom: 0.5rem; }
+
+        /* Tags */
+        .dimension-tags-container { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+        .dimension-tag { 
+            padding: 0.6rem 1.2rem; 
+            border: 1px solid var(--border-color); 
+            border-radius: 25px; 
+            background-color: var(--card-bg-color); 
+            color: var(--text-color); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            font-size: 0.95rem; 
+        }
+        .dimension-tag.selected { background-color: var(--primary-color); color: var(--header-text-color); border-color: var(--primary-color); }
+        
+        #submit-button {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            background-color: #9F2B68 !important;
+            color: white !important;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: background-color 0.2s ease;
+        }
+        #submit-button:hover { background-color: #36013F !important; }
+
+        footer { text-align: center; margin-top: 2rem; padding: 1.5rem; background-color: var(--card-secondary-bg-color) !important; font-size: 0.95rem; color: #6c757d !important; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: var(--card-bg-color); padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; color: var(--text-color); }
+        
+        .chart-section, .score-section { display: none !important; }
+
+        @media (max-width: 768px) {
+            #survey-wrapper main { padding: 1.5rem 1rem; }
+            .likert-scale { grid-template-columns: 1fr; gap: 1rem; }
+            .likert-scale label { flex-direction: row; text-align: left; padding: 0.75rem; border: 1px solid var(--border-color); }
+            .emoji { margin-right: 1rem; margin-bottom: 0; }
+            .likert-option { margin-top: 0; }
+        }
+
+        .select2-container .select2-selection--single { height: 48px !important; }
+        .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 46px !important; padding-left: 1rem !important; }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: 46px !important; }
+
+        /* Helper class for print text - hidden on screen */
+        .print-only-text { display: none; }
+
+        /* ---------------------------------------------------- */
+        /* PRINT STYLES                                         */
+        /* ---------------------------------------------------- */
+        @media print {
+            body { background-color: white !important; color: black !important; font-size: 11pt; }
+            
+            #survey-wrapper, .form-section, footer { box-shadow: none; border: 1px solid #ccc; }
+            #survey-wrapper { margin: 0; max-width: 100%; width: 100%; background: white !important; }
+            
+            .form-section { margin-bottom: 0.3cm !important; padding: 0.3cm 0.3cm 0 0.3cm !important; }
+            
+            .controls, footer, #submit-button, #submission-count, #reset-button, #dark-mode-toggle, #print-button { display: none !important; }
+            
+            /* Fix Bug 1: Removed hidden display for comments/appraisal */
+            .comments-section, .appraisal-section { display: block !important;  }
+            
+            .comments-section { page-break-before: always; break-before: page;  }
+            
+            header { text-align: left; padding: 0 0 0.5cm 0; border-bottom: 2px solid black; background-color: #fff !important; color: #000 !important;}
+            header h1 { font-size: 16pt; margin: 0; }
+            header p { display: block; font-size: 11pt; opacity: 1; }
+            main { padding: 0.1cm 0; }
+            
+            .question { padding: 0.2cm; margin: 0 0 0 0; border: 1px solid #ccc; border-radius: 0; border-left: 3px solid #888; page-break-inside: avoid; }
+            .question p { font-size: 11pt; margin: 0 0 0 0; }
+            
+            .mypsq-section { page-break-before: always; break-before: page; }
+            
+            /* --- UPDATED PRINT STYLING FOR MyPSQ (BAHAGIAN C) --- */
+            .mypsq-section .question {
+                margin-bottom: 5px !important; /* Reduced vertical spacing */
+                padding-bottom: 5px !important; /* Reduced padding */
+                border-bottom: 1px solid #eee;
+            }
+            .mypsq-section p {
+                font-size: 11pt !important;
+                margin-bottom: 2px !important; /* Move text closer to scale */
+            }
+
+            .likert-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.2cm; /* Reduced gap */ }
+            
+            /* Reduced Likert Padding and Font in Print */
+            .likert-scale label { 
+                flex-direction: column; 
+                font-size: 8pt !important; /* Smaller font as requested */
+                padding: 0 !important; /* Removed padding for compactness */
+                border: 1px solid transparent; 
+            }
+            .emoji { display: none; }
+            .likert-option { 
+                margin: 0; 
+                gap: 0; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center;
+                font-size: 8pt !important; /* Match option text size */
+            }
+            .likert-option input[type="radio"] { 
+                margin-bottom: 1px; 
+                transform: scale(0.8); /* Slightly smaller radio button */
+            }
+            .likert-scale label.selected-for-print { background-color: #e0e0e0 !important; border: 1px solid #333; border-radius: 4px; }
+            
+            /* --- UPDATED PRINT STYLING FOR INFRASTRUCTURE TAGS --- */
+            .dimension-tags-container {
+                gap: 3px !important;
+                margin: 5px 0 !important;
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .dimension-tag {
+                padding: 2px 6px !important;
+                font-size: 8pt !important;
+                border: 1px solid #555 !important;
+                background: none !important;
+                color: #000 !important;
+                border-radius: 4px !important;
+                line-height: 1.2;
+            }
+            .dimension-tag.selected {
+                background: #ccc !important;
+                font-weight: bold;
+                border-color: #000 !important;
+            }
+
+            .chart-section, .score-section { display: none !important; }
+            .header-logo { max-width: 100px; }
+            
+            .select2-container, select { display: none !important; }
+            .print-only-text { 
+                display: block !important; 
+                font-family: inherit; 
+                font-size: 11pt; 
+                color: black; 
+                border: 1px solid #ccc; 
+                padding: 4px; 
+                min-height: 25px; 
+                margin-top: 5px;
+                border-radius: 4px;
+            }
+
+            .radio-grid label {
+                background: none !important;
+                border: 1px solid #ccc !important;
+                padding: 2px 5px !important; 
+                margin: 0;
+                font-size: 10pt !important;
+                color: #000 !important;
+                width: auto;
+                border-radius: 4px;
+            }
+            .radio-grid { gap: 5px !important; }
+
+            input[type="text"].locked-input {
+                background-color: transparent !important;
+                border: 1px solid #ccc !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- BROWSER WARNING BANNER -->
+    <noscript>
+        <div style="background-color: #dc3545; color: white; padding: 15px; text-align: center; font-weight: bold; z-index: 9999;">
+            Telefon anda menghalang skrip borang ini. Sila buka pautan ini menggunakan aplikasi GOOGLE CHROME atau SAFARI.
+        </div>
+    </noscript>
+
+    <div id="webview-warning" style="display: none; background-color: #ffc107; color: #856404; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #ffeeba;">
+        ⚠️ Perhatian: Anda sedang membuka borang ini di dalam aplikasi pihak ketiga. <br>
+        Sila tekan ikon menu (tiga titik di penjuru atas) dan pilih <b>"Open in Browser / Buka di Pelayar (Chrome/Safari)"</b> untuk memastikan data anda berjaya dihantar.
+    </div>
+
+    <script>
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        var isInAppBrowser = (userAgent.indexOf("FBAN") > -1) || 
+                             (userAgent.indexOf("FBAV") > -1) || 
+                             (userAgent.indexOf("Instagram") > -1) || 
+                             (userAgent.indexOf("Line") > -1) || 
+                             (userAgent.indexOf("WeChat") > -1) ||
+                             (userAgent.indexOf("MicroMessenger") > -1);
+        
+        if (isInAppBrowser) {
+            document.getElementById('webview-warning').style.display = 'block';
+        }
+    </script>
+    <!-- END BROWSER WARNING -->
+
+    <div id="survey-wrapper" class="container">
+        <header>
+		    <img src="https://drive.google.com/thumbnail?id=1rPkt4cTHfbPBMaCQaEgwqnUSj8RDfSSO&sz=w1000" style="width:150px;height:auto;" class="header-logo">
+            <h1 id="survey-title" style="font-weight:bold;"></h1>
+        </header>
+
+        <main>
+            <section class="controls">
+                <div class="controls-left">
+                    <label for="language-select" id="lang-label" style="font-weight:bold;"></label>
+                    <select id="language-select">
+                        <option value="ms">Bahasa Malaysia</option>
+                        <option value="en">English</option>
+                        <option value="zh">中文 (Mandarin)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="iban">Bahasa Iban</option>
+                        <option value="kd" hidden>Bahasa Kadazandusun</option>
+                    </select>
+                </div>
+                <div class="controls-right">
+                     <button id="dark-mode-toggle" title="Toggle Dark Mode">🌙</button>
+                     <button id="print-button"></button>
+					 <button id="reset-button"></button>
+                </div>
+            </section>
+
+            <div class="introduction-text" id="intro-text-container"></div>
+
+            <form id="surveyForm">
+                <span id="submission-count" style="font-weight: normal; font-size: 0.9rem; color: #6c757d;"></span>
+                
+                <section class="form-section demographics-section">
+                    <h2 id="demographics-title" class="survey-section-header"></h2>
+                    
+                    <div class="form-group">
+                        <label for="state-select" id="state-label"></label>
+                        <select id="state-select" style="width: 100%;" required><option></option></select>
+                        <div id="print-state-select" class="print-only-text"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hospital-select" id="hospital-label"></label>
+                        <select id="hospital-select" style="width: 100%;" required><option></option></select>
+                        <div id="print-hospital-select" class="print-only-text"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="gender-label"></legend>
+                            <div class="radio-grid" id="gender-options"></div>
+                        </fieldset>
+                    </div>
+
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="age-label"></legend>
+                            <div class="radio-grid" id="age-options"></div>
+                        </fieldset>
+                    </div>
+
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="ethnicity-label"></legend>
+                            <div class="radio-grid" id="ethnicity-options"></div>
+                        </fieldset>
+                    </div>
+                    
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="marital-status-label"></legend>
+                            <div class="radio-grid" id="marital-status-options"></div>
+                        </fieldset>
+                    </div>
+                    
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="education-label"></legend>
+                            <div class="radio-grid" id="education-options"></div>
+                        </fieldset>
+                    </div>
+
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="occupation-label"></legend>
+                            <div class="radio-grid" id="occupation-options"></div>
+                        </fieldset>
+                    </div>
+                </section>
+
+                <section class="form-section context-section">
+                    <h2 id="context-title" class="survey-section-header"></h2>
+                    
+                    <div class="form-group">
+                        <fieldset>
+                            <legend id="treatment-location-label"></legend>
+                            <div id="treatment-location-options"></div>
+                        </fieldset>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service-location-select" id="service-location-label"></label>
+                        <select id="service-location-select" style="width: 100%;" required>
+                            <option></option> 
+                        </select>
+                        <div id="print-service-select" class="print-only-text"></div>
+                    </div>
+                </section>
+                
+                <section class="mypsq-section form-section">
+                    <h2 id="mypsq-title" class="survey-section-header"></h2>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q1-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q1-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q2-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q2-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q3-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q3-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q4-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q4-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q5-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q5-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q6-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q6-scale"></div>
+                    </fieldset>
+                    <fieldset class="form-section question" style="padding: 0; background: transparent !important; box-shadow: none; border: none; border-left: none;">
+                        <p id="q7-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q7-scale"></div>
+                    </fieldset>
+                </section>
+
+                <section class="form-section comments-section">
+                    <h2 id="comments-title" class="survey-section-header"></h2>
+                    <textarea id="comments-textarea" rows="5"></textarea>
+                </section>
+
+                <section class="form-section appraisal-section">
+                    <h2 id="appraisal-title" class="survey-section-header"></h2>
+                    <textarea id="appraisal-textarea" rows="3"></textarea>
+                </section>
+
+                <section class="form-section facilities-section">
+                    <h2 id="facilities-title" class="survey-section-header"></h2>
+                    <fieldset class="question" style="border:none; padding:0;">
+                        <p id="q-facilities-text" style="font-weight:600; font-size:1.1rem;"></p>
+                        <div class="likert-scale" id="q-facilities-scale"></div>
+                    </fieldset>
+					<br>
+					<p class="question" id="facilities-comment-label-id" style="border:none; padding:0; font-weight:600; margin-top:1rem;"></p>
+                    <div id="facilities-tags-container" class="dimension-tags-container"></div>
+                    <textarea id="facilities-textarea" rows="3"></textarea>
+                </section>
+
+            </form>
+
+            <section class="form-section chart-section">
+                <h2 id="chart-title" class="survey-section-header"></h2>
+                <div class="chart-container">
+                    <canvas id="satisfactionRadarChart"></canvas>
+                    <img id="chart-for-print" alt="Satisfaction Score Chart" style="display: none;">
+                </div>
+            </section>
+
+            <section class="form-section score-section" >
+                 <div id="score-container" class="score-container">
+                    <h2 id="overall-score-title" class="survey-section-header"></h2>
+                    <span id="score-percentage">0%</span>
+                 </div>
+                 <p class="instruction-text" id="score-explanation"></p>
+            </section>
+
+            <button type="submit" id="submit-button" form="surveyForm"></button>
+
+        </main>
+        
+        <footer><p id="footer-text"></p></footer>
+    </div>
+
+    <div id="summary-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-button">×</button>
+            <h2 id="modal-title"></h2>
+            <pre id="modal-summary"></pre>
+        </div>
+    </div>
+
+
+<script>
+    // Define the GVIZ callback globally so it can be called by the script tag
+    let gvizData = [];
+    function handleGvizResponse(response) {
+        if (response.status === 'error') {
+            console.error('Error in query: ' + response.errors[0].detailed_message);
+            return;
+        }
+        
+        const rows = response.table.rows;
+        gvizData = [];
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const hospital = row.c[0] ? row.c[0].v : null;
+            const outpatient = row.c[1] ? row.c[1].v : 0; 
+            const inpatient = row.c[2] ? row.c[2].v : 0;
+            
+            if (hospital) {
+                gvizData.push({
+                    hospital: hospital,
+                    inpatient: inpatient,
+                    outpatient: outpatient
+                });
+            }
+        }
+        console.log("GVIZ Data loaded:", gvizData);
+        if (typeof window.updateSubmissionCount === 'function') {
+            window.updateSubmissionCount();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // ==========================================
+        // NEW APPS SCRIPT WEB APP URL GOES HERE!
+        // Replace this URL once you deploy your Apps Script
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzs8paUJILrREEuNUgXCPvdJmjzgunGKojZah9ge2KtVeC3M8ITKPPJOfW5ocAPSModMg/exec";
+        // ==========================================
+
+        const populateServiceSelect = () => {
+            const serviceSelect = $('#service-location-select');
+            serviceSelect.empty().append('<option></option>'); 
+            servicesList.forEach(service => {
+                serviceSelect.append(new Option(service, service));
+            });
+        };
+        
+        const translations = {
+            ms: {
+                title: "Borang Soal Selidik Kepuasan Pesakit Malaysia (MyPSQ)", langLabel: "Pilih Bahasa:", printBtn: "Cetak Borang", resetBtn: "Set Semula",submitBtn: "Hantar Maklum Balas",
+                introHtml: "<ul><li>Semua soalan dalam borang ini adalah merujuk kepada pengalaman perkhidmatan kesihatan anda yang terkini.</li><li>Jika borang ini diisi oleh waris/wakil/penjaga pesakit, maklumat hendaklah merujuk kepada maklumat/pengalaman pesakit.</li></ul>",
+                demographicsTitle: "Bahagian A: Maklumat Demografi", stateLabel: "Negeri:", hospitalLabel: "Hospital/Fasiliti:", genderLabel: "Jantina:", ageLabel: "Kumpulan Umur:", ethnicityLabel: "Bangsa:", maritalStatusLabel: "Status Perkahwinan:", educationLabel: "Tahap Pendidikan Tertinggi:", occupationLabel: "Status Pekerjaan:",
+                genderOptions: { male: "Lelaki", female: "Perempuan" },
+                ageOptions: { a: "≤ 17 tahun", b: "18 - 30 tahun", c: "31 - 40 tahun", d: "41 - 50 tahun", e: "51 - 60 tahun", f: "≥ 61 tahun" },
+                ethnicityOptions: { malay: "Melayu", chinese: "Cina", indian: "India", sabah: "Bumiputera Sabah", sarawak: "Bumiputera Sarawak", others: "Lain-lain" },
+                maritalStatusOptions: { married: "Berkahwin", single: "Bujang", divorced_widowed: "Bercerai / Duda / Janda" },
+                educationOptions: { none: "Tiada Pendidikan Formal", primary: "Sekolah Rendah", secondary: "Sekolah Menengah", tertiary: "Peringkat Sijil, Diploma, Ijazah dan ke atas" },
+                occupationOptions: { gov: "Penjawat Awam", private: "Swasta", self: "Bekerja Sendiri", unemployed: "Tidak Bekerja", student: "Pelajar", retired: "Pesara", housewife: "Suri Rumah", others: "Lain-lain" },
+                contextTitle: "Bahagian B: Konteks Rawatan", treatmentLocationLabel: "Lokasi mendapatkan rawatan (sila nyatakan):", treatmentLocationOptions: { inpatient: "Pesakit Dalam", outpatient: "Pesakit Luar" },
+                serviceLocationLabel: "Nyatakan jabatan utama perkhidmatan yang dinilai:", 
+                facilitiesTitle: "Bahagian D: Penilaian Infrastruktur",
+                facilitiesQuestion: "Apakah tahap kepuasan anda terhadap infrastruktur yang disediakan (cth: tempat letak kereta, kawasan menunggu, tandas, lobi)?",
+                facilitiesTags: ["Tempat Letak Kereta", "Kawasan Menunggu", "Tandas", "Lobi", "Kafe/Kafeteria", "Papan Tanda", "Surau", "Wad","Klinik", "Lif", "Lain-Lain"], facilitiesCommentLabel: "Sila pilih satu atau lebih infrastruktur yang berkaitan dengan maklum balas anda, kemudian tulis komen anda di bawah.",
+                mypsqTitle: "Bahagian C: Penilaian Anda Terhadap Perkhidmatan Kami (MyPSQ)",
+                scale: ["Sangat Tidak Setuju", "Tidak Setuju", "Neutral", "Setuju", "Sangat Setuju"],
+                facilitiesScale: ["Sangat Tidak Berpuas Hati", "Tidak Berpuas Hati", "Neutral", "Berpuas Hati", "Sangat Berpuas Hati"],
+                questions: [
+                    "1. Saya berpuas hati dengan kualiti perkhidmatan perubatan yang diterima.", 
+                    "2. Saya berpuas hati dengan kecekapan petugas kesihatan dan ketelitian pemeriksaan yang diberikan.", 
+                    "3. Saya berpuas hati dengan layanan petugas kesihatan (sikap hormat, prihatin dan tanpa diskriminasi).", 
+                    "4. Saya berpuas hati dengan penjelasan petugas kesihatan dan kesediaan mereka mendengar kata-kata saya.", 
+                    "5. Saya berpuas hati dengan kos rawatan dan merasakan ia adalah berpatutan.", 
+                    "6. Saya berpuas hati dengan masa yang diluangkan oleh petugas kesihatan untuk merawat saya.", 
+                    "7. Saya berpuas hati dengan temu janji, tempoh menunggu, dan akses kepada perkhidmatan kesihatan."
+                ],
+                commentsTitle: "Komen & Cadangan Mengenai Pengalaman Rawatan dan Perkhidmatan Kami", 
+                appraisalTitle: "Sila kongsikan pengalaman positif atau penghargaan anda.",
+                modalTitle: "Ringkasan Maklum Balas",
+                footer: "Tinjauan ini adalah versi PSQ-18 yang dipermudah.",
+                submissionBlocked: "Penghantaran disekat kerana kuota untuk lokasi ini telah dicapai (501 atau lebih penghantaran)."
+            },
+            en: {
+                title: "Malaysia Patient Satisfaction Questionnaire (MyPSQ)", langLabel: "Select Language:", printBtn: "Print Form", resetBtn: "Reset", submitBtn: "Submit Response",
+                introHtml: "<ul><li>All questions in this form refer to your most recent healthcare service experience.</li><li>If this form is filled in by the patient's next of kin/representative/guardian, the information should refer to the patient's information/experience.</li></ul>",
+                demographicsTitle: "Section A: Demographic Information", stateLabel: "State:", hospitalLabel: "Hospital/Facility:", genderLabel: "Gender:", ageLabel: "Age Group:", ethnicityLabel: "Ethnicity:", maritalStatusLabel: "Marital Status:", educationLabel: "Highest Educational Level:", occupationLabel: "Occupational Status:",
+                genderOptions: { male: "Male", female: "Female" },
+                ageOptions: { a: "≤ 17 years", b: "18 - 30 years", c: "31 - 40 years", d: "41 - 50 years", e: "51 - 60 years", f: "≥ 61 years" },
+                ethnicityOptions: { malay: "Malay", chinese: "Chinese", indian: "Indian", sabah: "Sabah Bumiputera", sarawak: "Sarawak Bumiputera", others: "Others" },
+                maritalStatusOptions: { married: "Married", single: "Single", divorced_widowed: "Divorced / Widowed" },
+                educationOptions: { none: "No Formal Education", primary: "Primary School", secondary: "Secondary School", tertiary: "Certificate, Diploma, Degree and above" },
+                occupationOptions: { gov: "Government", private: "Private", self: "Self-employed", unemployed: "Unemployed", student: "Student", retired: "Retired", housewife: "Housewife", others: "Others" },
+                contextTitle: "Section B: Treatment Context", treatmentLocationLabel: "Location for treatment (please state):", treatmentLocationOptions: { inpatient: "Inpatient", outpatient: "Outpatient" },
+                serviceLocationLabel: "Please specify the primary department for the service being evaluated:", 
+                facilitiesTitle: "Section D: Infrastructure Evaluation",
+                facilitiesQuestion: "How satisfied are you with the infrastructure/ amenities provided (e.g., car park, waiting area, toilet, lobby)?",
+                facilitiesTags: ["Car Park", "Waiting Area", "Toilet", "Lobby", "Cafe/Cafeteria", "Signage", "Prayer Room", "Ward", "Clinic", "Lift/Elevator", "Others"], facilitiesCommentLabel: "Please select one or more infrastructure items relevant to your feedback, then write your comments below.",
+                mypsqTitle: "Section C: Your Evaluation of Our Service (MyPSQ)",
+                scale: ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"],
+                facilitiesScale: ["Strongly Dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Strongly Satisfied"],
+                questions: [
+                    "1. I am satisfied with the quality of medical service received.", 
+                    "2. I am satisfied with the competence of health personnel and the thoroughness of the examination provided.", 
+                    "3. I am satisfied with the care provided by health personnel (respectful attitude, concern, and without discrimination).", 
+                    "4. I am satisfied with the health personnel's explanation and their willingness to listen to me.", 
+                    "5. I am satisfied with the cost of treatment and feel it is reasonable.", 
+                    "6. I am satisfied with the time spent by health personnel to treat me.", 
+                    "7. I am satisfied with the appointment, waiting time, and access to health services."
+                ],
+                commentsTitle: "Comments & Suggestions on Our Treatment and Service Experience", 
+                appraisalTitle: "Please share your positive experience or appreciation.",
+                modalTitle: "Response Summary",
+                footer: "This survey is a simplified version of PSQ-18.",
+                submissionBlocked: "Submission is blocked because the quota for this location has been reached (501 or more submissions)."
+            },
+            iban: {
+                title: "Malaysia Patient Satisfaction Questionnaire (MyPSQ)", langLabel: "Pilih Jaku:", printBtn: "Chetak Pom", resetBtn: "Bungkar baru", submitBtn: "Anjung Saut",
+                introHtml: "<ul><li>Semua tanya dalam pom tu bekaul enggau peneleba nuan ba pengawa ngintu pengerai ti pemadu baru.</li><li>Enti pom tu diisi kaban belayan/pengari/penyaga pesakit, penerang nya patut nuju ngagai penerang/peneleba pesakit.</li></ul>",
+                demographicsTitle: "Genteran A: Penerang Demografi", stateLabel: "Nengeri:", hospitalLabel: "Sepital/Fasiliti:", genderLabel: "Jantina:", ageLabel: "Raban Umur:", ethnicityLabel: "Bansa:", maritalStatusLabel: "Status Tikah:", educationLabel: "Tikal Pelajar Pemadu Tinggi:", occupationLabel: "Status Pengawa:",
+                genderOptions: { male: "Laki", female: "Indu" },
+                ageOptions: { a: "≤ 17 taun", b: "18 - 30 taun", c: "31 - 40 taun", d: "41 - 50 taun", e: "51 - 60 taun", f: "≥ 61 taun" },
+                ethnicityOptions: { malay: "Melayu", chinese: "Cina", indian: "India", sabah: "Bumiputera Sabah", sarawak: "Bumiputera Sarawak", others: "Bansa Bukai" },
+                maritalStatusOptions: { married: "Udah Nikah", single: "Bedau Nikah", divorced_widowed: "Sarak / Balu" },
+                educationOptions: { none: "Nadai Pelajar Formal", primary: "Sekula Primari", secondary: "Sekula Sekondari", tertiary: "Tikah Sijil, Diploma, Ijazah & ke atas" },
+                occupationOptions: { gov: "Gawa Perintah", private: "Gawa Swasta", self: "Gawa kediri", unemployed: "Nadai Gawa", student: "Pelajar", retired: "Pensin", housewife: "Indu rumah", others: "Bukai" },
+                contextTitle: "Genteran B: Konteks Perubat", treatmentLocationLabel: "Endur berubat (padahka):", treatmentLocationOptions: { inpatient: "Pesakit Dalam", outpatient: "Pesakit Luar" },
+                serviceLocationLabel: "Padahka endur servis ti dipechara:", 
+                facilitiesTitle: "Genteran D: Nilai Infrastruktur",
+                facilitiesQuestion: "Nama tikas pemuas ati nuan senentang infrastruktur ti disediaka (cth: palan parking, endur nganti, agu, lobi)?",
+                facilitiesTags: ["Palan Parking", "Endur Nganti", "Agu", "Lobi", "Kopitiam/Palan Makai", "Papan Tanda", "Surau", "Wad", "Klinik", "Lif", "Bukai"], facilitiesCommentLabel: "Pilih siti tauka lebih infrastruktur ti bekaul enggau timbal nuan, udah nya tulis komen nuan ba baruh tu.",
+                mypsqTitle: "Genteran C: Penemu Nuan Bekaul Enggau Servis Kami (MyPSQ)",
+                scale: ["Amat Enda Setuju", "Enda Setuju", "Neutral", "Setuju", "Amat Setuju"],
+                facilitiesScale: ["Amat Enda Puas Ati", "Enda Puas Ati", "Neutral", "Puas Ati", "Amat Puas Ati"],
+                questions: [
+                    "1. Aku gaga ati enggau kualiti servis perubat ti diterima.", 
+                    "2. Aku gaga ati enggau penyikar pengereja pengawa pengerai sereta penyilik peresa ti diberi.", 
+                    "3. Aku gaga ati enggau chara berubat ti disediaka pengereja pengawa pengerai (ulah ti bebasa, siru sereta nadai bechiping).", 
+                    "4. Aku gaga ati enggau penerang pengereja pengawa pengerai sereta pengeran sida ninga ke jaku aku.", 
+                    "5. Aku gaga ati enggau ungkus berubat sereta ngasaika iya patut.", 
+                    "6. Aku gaga ati enggau timpuh ti dikena pengereja pengawa pengerai ngubat aku.", 
+                    "7. Aku gaga ati enggau temu janji, jam nganti, sereta akses ngagai servis pengerai."
+                ],
+                commentsTitle: "Komen & Lalau Bekaul Enggau Peneleba Perubat enggau Servis Kami", 
+                appraisalTitle: "Minta kita bekunsika peneleba tauka tanda terima kasih nuan.",
+                modalTitle: "Ringkas Saut",
+                footer: "Pansik tu versi PSQ-18 ti mudah agi.",
+                submissionBlocked: "Penghantaran disekat laban kuota untuk lokasi tu udah datai ba tikas maksimum (501 atau lebih penghantaran)."
+            },
+            kd: {
+                title: "Malaysia Patient Satisfaction Questionnaire (MyPSQ)", langLabel: "Piliho Boros:", printBtn: "Cetak Borang", resetBtn: "Posisio Wagu", submitBtn: "Pataako Ponilaian",
+                introHtml: "<ul><li>Toinsanan uhot id borang diti nopo nga montok kinopurimanan servis kosihatan nu di kawawagu.</li><li>Nung borang diti siisian di waris/wakil/penjaga do pesakit, oponsol do toinsanan maklumat nopo nga i'tomon montok maklumat/kinopurimanan di pesakit.</li></ul>",
+                demographicsTitle: "Baagian A: Maklumat Demografi", stateLabel: "Pogun:", hospitalLabel: "Hospital/Walai Kosihatan:", genderLabel: "Kojantinaan:", ageLabel: "Tumpuk Umur:", ethnicityLabel: "Tinaru:", maritalStatusLabel: "Status Kahwin:", educationLabel: "Tahap Pandidikan Atas:", occupationLabel: "Status Karaja:",
+                genderOptions: { male: "Kusai", female: "Tondu" },
+                ageOptions: { a: "≤ 17 toun", b: "18 - 30 toun", c: "31 - 40 toun", d: "41 - 50 toun", e: "51 - 60 toun", f: "≥ 61 toun" },
+                ethnicityOptions: { malay: "Melayu", chinese: "Cina", indian: "India", sabah: "Bumiputera Sabah", sarawak: "Bumiputera Sarawak", others: "Suai-suai" },
+                maritalStatusOptions: { married: "Nokosawo", single: "Bujang", divorced_widowed: "Nopitongkiad / Balu" },
+                educationOptions: { none: "Aiso Pandidikan Formal", primary: "Sikul Tosiriba", secondary: "Sikul Takawas", tertiary: "Sijil, Diploma, Ijazah & kumaa id sawat" },
+                occupationOptions: { gov: "Kakitangan Karajaan", private: "Swasta", self: "Karaja Sondiri", unemployed: "Aiso Karaja", student: "Susumikul", retired: "Pensin", housewife: "Suri Rumah", others: "Suai-suai" },
+                contextTitle: "Baagian B: Konteks Rawatan", treatmentLocationLabel: "Kinoyonon maganu rawatan (pokiuhoto):", treatmentLocationOptions: { inpatient: "Pesakit id Suang", outpatient: "Pesakit id Labus" },
+                serviceLocationLabel: "Pokiuhoto koyuon servis di pinonilaian:", 
+                facilitiesTitle: "Baagian D: Ponilaian Infrastruktur",
+                facilitiesQuestion: "Nunu tahad kinasanangan ginawo nu montok infrastruktur di pinotounda (cth: kinoyonon paking, kinoyonon magandad, tandas, lobi)?",
+                facilitiesTags: ["Kinoyonon Paking", "Kinoyonon Magandad", "Tandas", "Lobi", "Kafe/Restoran", "Papan Tanda", "Surau", "Wad", "Klinik", "Lif", "Suai-suai"], facilitiesCommentLabel: "Pilio iso toi lobi infrastruktur di otopot montok ponilaian nu, om surat no komen nu id siriba.",
+                mypsqTitle: "Baagian C: Ponilaian Nu Kumaa Servis Dahai (MyPSQ)",
+                scale: ["Au Sokodung Kopio", "Au Sokodung", "Neutral", "Sokodung", "Sokodung Kopio"],
+                facilitiesScale: ["Au Asanang Ginawo Kopio", "Au Asanang Ginawo", "Neutral", "Asanang Ginawo", "Asanang Ginawo Kopio"],
+                questions: [
+                    "1. Asanang ginawo ku miampai kualiti servis perubatan di naanu.", 
+                    "2. Asanang ginawo ku miampai kabaalan mamasok kosihatan om kosilikan pemeriksaan di pinatahak.", 
+                    "3. Asanang ginawo ku miampai layanan mamasok kosihatan (sikap hormat, prihatin om aiso diskriminasi).", 
+                    "4. Asanang ginawo ku miampai kointalangan mamasok kosihatan om kosediaan diolo mokinongou boros ku.", 
+                    "5. Asanang ginawo ku miampai kos rawatan om marasa do patut i.", 
+                    "6. Asanang ginawo ku miampai timpu di pinoluang di mamasok kosihatan montok merawat doho.", 
+                    "7. Asanang ginawo ku miampai temu janji, timpu magandad, om akses kumaa servis kosihatan."
+                ],
+                commentsTitle: "Komen & Poniangan Montok Kinopurimanan Rawatan om Servis Dahai", 
+                appraisalTitle: "Pokionuon do posuango i kinopurimanan nu di asanang toi kopounsikouan.",
+                modalTitle: "Ringkasan Ponilaian",
+                footer: "Uhupan diti nopo nga iso versi di pinasanganu di PSQ-18.",
+                submissionBlocked: "Pongotuan disekat sabab kuota montok lokasi diti nokoopi no (501 toi lobi pongotuan)."
+            },
+            zh: {
+                title: "Malaysia Patient Satisfaction Questionnaire (MyPSQ)", langLabel: "选择语言:", printBtn: "打印表格", resetBtn: "重置", submitBtn: "提交反馈",
+                introHtml: "<ul><li>本表格中的所有问题均围绕您近期接受医疗服务的体验而设。</li><li>若本表格由患者的家属、代表或监护人代为填写，请根据患者本人的实际情况与就医体验作答。</li></ul>",
+                demographicsTitle: "A部分：个人资料", stateLabel: "州属:", hospitalLabel: "医院/医疗机构:", genderLabel: "性别:", ageLabel: "年龄组:", ethnicityLabel: "种族:", maritalStatusLabel: "婚姻状况:", educationLabel: "最高教育水平:", occupationLabel: "职业状况:",
+                genderOptions: { male: "男性", female: "女性" },
+                ageOptions: { a: "≤ 17岁", b: "18 - 30岁", c: "31 - 40岁", d: "41 - 50岁", e: "51 - 60岁", f: "≥ 61岁" },
+                ethnicityOptions: { malay: "马来人", chinese: "华人", indian: "印度人", sabah: "沙巴土著", sarawak: "砂拉越土著", others: "其他" },
+                maritalStatusOptions: { married: "已婚", single: "单身", divorced_widowed: "离婚 / 丧偶" },
+                educationOptions: { none: "无正规教育", primary: "小学", secondary: "中学", tertiary: "证书、文凭、学位及以上" },
+                occupationOptions: { gov: "政府雇员", private: "私人界雇员", self: "自雇人士", unemployed: "无业", student: "学生", retired: "退休人士", housewife: "家庭主妇", others: "其他" },
+                contextTitle: "B部分：治疗背景", treatmentLocationLabel: "接受治疗的地点（请注明）：", treatmentLocationOptions: { inpatient: "住院病人", outpatient: "门诊病人" },
+                serviceLocationLabel: "请注明所评估服务的主要地点：", 
+                facilitiesTitle: "D部分：基础设施评估",
+                facilitiesQuestion: "您对所提供的基础设施满意度如何？（例如：停车场、等候区、厕所、大厅）",
+                facilitiesTags:["停车场", "等候区", "厕所", "大堂", "咖啡厅/食堂", "指示牌", "祈祷室", "病房", "诊所", "电梯", "其他"], facilitiesCommentLabel: "请选择一个或多个与您的反馈相关的基础设施，然后在下方写下您的评论。",
+                mypsqTitle: "C部分：您对我们服务的评价 (MyPSQ)",
+                scale: ["非常不同意", "不同意", "中立", "同意", "非常同意"],
+                facilitiesScale: ["非常不满意", "不满意", "中立", "满意", "非常满意"],
+                questions: [
+                    "1. 我对所接受的医疗服务质量感到满意。", 
+                    "2. 我对医护人员的能力与所提供的仔细检查感到满意。", 
+                    "3. 我对医护人员的服务态度（尊重、关心和无歧视）感到满意。", 
+                    "4. 我对医护人员的解释以及他们愿意聆听我的意见感到满意。", 
+                    "5. 我对治疗费用感到满意，并认为它是合理的。", 
+                    "6. 我对医护人员为我治疗所花费的时间感到满意。", 
+                    "7. 我对预约、等待时间以及获得医疗服务的便利性感到满意。"
+                ],
+                commentsTitle: "关于我们的治疗体验和服务，请提出评论与建议。", 
+                appraisalTitle: "请分享您的正面体验或赞赏之词。",
+                modalTitle: "反馈摘要",
+                footer: "此调查是PSQ-18的简化版本。",
+                submissionBlocked: "提交已被阻止，因为此地点的配额已满 (501次或更多提交)。"
+            },
+            ta: {
+                title: "Malaysia Patient Satisfaction Questionnaire (MyPSQ)", langLabel: "மொழி தேர்வு:", printBtn: "படிவத்தை அச்சிடுக", resetBtn: "மீத்தெடுக்க", submitBtn: "சமர்ப்பிக்கவும்",
+                introHtml: "<ul><li>இந்த படிவத்தில் உள்ள அனைத்து கேள்விகளும் உங்களின் சுகாதார சேவையின் அனுபவத்தைக் குறிக்கின்றன.</li><li>தகவல்கள் அனைத்தும் நோயாளியைப் பற்றியதாகும் அவர்களின் அனுபவத்தைக் குறிப்பதாகவும் இருக்க வேண்டும்.</li></ul>",
+                demographicsTitle: "பிரிவு A: மக்கள்தொகை தகவல்", stateLabel: "மாநிலம்:", hospitalLabel: "மருத்துவமனை/நிலையம்:", genderLabel: "பாலினம்:", ageLabel: "வயது பிரிவு:", ethnicityLabel: "இனம்:", maritalStatusLabel: "திருமண நிலை:", educationLabel: "உயர்நிலை கல்வி நிலை:", occupationLabel: "தொழில் நிலை:",
+                genderOptions: { male: "ஆண்", female: "பெண்" },
+                ageOptions: { a: "≤ 17 வயது", b: "18 - 30 வயது", c: "31 - 40 வயது", d: "41 - 50 வயது", e: "51 - 60 வயது", f: "≥ 61 வயது" },
+                ethnicityOptions: { malay: "மலாய்", chinese: "சீனர்", indian: "இந்தியர்", sabah: "சபா பூமிபுத்ரா", sarawak: "சரவாக் பூமிபுத்ரா", others: "மற்றவை" },
+                maritalStatusOptions: { married: "திருமணமானவர்", single: "திருமணமாகாதவர்", divorced_widowed: "விவாகரத்தானவர் / விதவை" },
+                educationOptions: { none: "முறைசாரா கல்வி இல்லை", primary: "தொடக்கப் பள்ளி", secondary: "இடைநிலைப் பள்ளி", tertiary: "சான்றிதழ், டிப்லோமா, பட்டதாரி மற்றும் அதற்கு மேல்" },
+                occupationOptions: { gov: "அரசு ஊழியர்", private: "தனியார் ஊழியர்", self: "சுய தொழில்", unemployed: "வேலையில்லாதவர்", student: "மாணவர்", retired: "ஓய்வு பெற்றவர்", housewife: "இல்லத்தரசி", others: "மற்றவை" },
+                contextTitle: "பிரிவு B: சிகிச்சை சூழல்", treatmentLocationLabel: "சிகிச்சை பெறும் இடம் (தயவுசெய்து குறிப்பிடவும்):", treatmentLocationOptions: { inpatient: "உள்நோயாளி", outpatient: "வெளிநோயாளி" },
+                serviceLocationLabel: "மதிப்பீடு செய்யப்படும் சேவையின் முதன்மைத் துறையைக் குறிப்பிடவும்:", 
+                facilitiesTitle: "பிரிவு D: உள்கட்டமைப்பு மதிப்பீடு",
+                facilitiesQuestion: "வழங்கப்பட்ட கட்டமைப்பில் உங்கள் திருப்தி நிலை என்ன (எ.கா: வாகனம் நிறுத்துமிடம், காத்திருக்கும் இடம், கழிப்பறை, லாபி)?",
+                facilitiesTags: ["வாகனம் நிறுத்துமிடம்", "காத்திருக்கும் இடம்", "கழிப்பறை", "லாபி", "சிற்றுண்டிச்சாலை", "அறிவிப்பு பலகை", "பிரார்த்தனை அறை", "வார்டு", "மருத்துவமனை", "மின்தூக்கி", "மற்றவை"], facilitiesCommentLabel: "உங்கள் கருத்துடன் தொடர்புடைய ஒன்று அல்லது அதற்கு மேற்பட்ட உள்கட்டமைப்புகளைத் தேர்ந்தெடுக்கவும், பின்னர் கீழே உங்கள் கருத்தை எழுதவும்.",
+                mypsqTitle: "பிரிவு C: எங்கள் சேவையின் மீதான உங்கள் மதிப்பீடு (MyPSQ)",
+                scale: ["முற்றிலும் ஏற்கவில்லை", "ஏற்கவில்லை", "நடுநிலை", "ஏற்கிறேன்", "முற்றிலும் ஏற்கிறேன்"],
+                facilitiesScale: ["முற்றிலும் அதிருப்தி", "அதிருப்தி", "நடுநிலை", "திருப்தி", "முற்றிலும் திருப்தி"],
+                questions: [
+                    "1. பெறப்பட்ட மருத்துவ சேவையின் தரத்தில் நான் திருப்தி அடைகிறேன்.", 
+                    "2. சுகாதாரப் பணியாளர்களின் திறமை மற்றும் பரிசோதனையின் துல்லியத்தில் நான் திருப்தி அடைகிறேன்.", 
+                    "3. சுகாதாரப் பணியாளர்களின் கவனிப்பில் (மரியாதை, அக்கறை மற்றும் பாகுபாடின்மை) நான் திருப்தி அடைகிறேன்.", 
+                    "4. சுகாதாரப் பணியாளர்களின் விளக்கம் அளித்தல் மற்றும் என் வார்த்தைகளைக் கேட்க தயாராக இருப்பதிலும் நான் திருப்தி அடைகிறேன்.", 
+                    "5. சிகிச்சையின் செலவின் தொகையை நான் திருப்தி அடைக்கிறேன். மேலும், அவ்விலை நியாயமானதென்று ஏற்றுக்கொள்கிறேன்.", 
+                    "6. எனக்கு சிகிச்சை அளிக்க சுகாதாரப் பணியாளர்கள் செலவிடும் நேரத்தில் நான் திருப்தி அடைகிறேன்.", 
+                    "7. சந்திப்பு, காத்திருக்கும் நேரம் மற்றும் சுகாதார சேவைகளுக்கான அணுகல் ஆகியவற்றில் நான் திருப்தி அடைகிறேன்."
+                ],
+                commentsTitle: "எங்கள் சிகிச்சை மற்றும் சேவை அனுபவம் குறித்த கருத்துகள் மற்றும் பரிந்துரைகள்", 
+                appraisalTitle: "தயவுசெய்து உங்கள் நேர்மறையான அனுபவம் அல்லது பாராட்டுகளைப் பகிரவும்.",
+                modalTitle: "பதில் சுருக்கம்",
+                footer: "இந்த கணக்கெடுப்பு PSQ-18 இன் எளிமைப்படுத்தப்பட்ட பதிப்பாகும்.",
+                submissionBlocked: "இந்த இடத்திற்கான ஒதுக்கீடு (501 அல்லது அதற்கு மேற்பட்ட சமர்ப்பிப்புகள்) அடைந்ததால் சமர்ப்பிப்பு தடுக்கப்பட்டது."
+            }
+        };
+
+        // --- DYNAMIC STATE & HOSPITAL LISTS ---
+        const statesList = [
+            "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang",
+            "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor",
+            "Terengganu", "W.P. Kuala Lumpur (HKL-HTA-IPR)", "W.P. Labuan", "W.P. Putrajaya (IKN)", "JKWPKL&P"
+        ];
+
+        // Hospitals grouped by state
+const hospitalsByState = {
+  Johor: [
+    "Hospital Sultan Ismail, Johor Bahru",
+    "Hospital Pakar Sultanah Fatimah, Muar",
+    "Hospital Enche' Besar Hajjah Khalsom",
+    "Hospital Pasir Gudang",
+    "Hospital Temenggong Seri Maharaja Tun Ibrahim, Kulai",
+    "Hospital Segamat",
+    "Hospital Pontian",
+    "Hospital Sultanah Nora Ismail",
+    "Hospital Tangkak",
+    "Hospital Sultanah Aminah, Johor Bahru",
+    "Hospital Mersing",
+    "Hospital Kota Tinggi",
+    "Hospital Permai"
+  ],
+
+  Kedah: [
+    "Hospital Yan",
+    "Hospital Sultanah Bahiyah",
+    "Hospital Sultanah Maliha",
+    "Hospital Kulim",
+    "Hospital Sultan Abdul Halim",
+    "Hospital Jitra",
+    "Hospital Kuala Nerang",
+    "Hospital Sik",
+    "Hospital Pendang",
+    "Hospital Baling"
+  ],
+
+  Kelantan: [
+    "Hospital Tengku Anis, Pasir Puteh",
+    "Hospital Raja Perempuan Zainab II, Kota Bharu",
+    "Hospital Tumpat",
+    "Hospital Sultan Ismail Petra, Kuala Krai",
+    "Hospital Tanah Merah",
+    "Hospital Jeli",
+    "Hospital Machang",
+    "Hospital Pasir Mas",
+    "Hospital Gua Musang",
+    "Hospital Bachok"
+  ],
+
+  "JKWPKL&P": [
+    "Hospital Rehabilitasi Cheras",
+    "Hospital Putrajaya"	
+  ],
+
+  Melaka: [
+    "Hospital Melaka",
+    "Hospital Jasin",
+    "Hospital Alor Gajah"
+  ],
+
+  "Negeri Sembilan": [
+    "Hospital Port Dickson",
+    "Hospital Tuanku Ja'afar, Seremban",
+    "Hospital Rembau",
+    "Hospital Tampin",
+    "Hospital Tuanku Ampuan Najihah, Kuala Pilah",
+    "Hospital Jelebu",
+    "Hospital Jempol"
+  ],
+
+  Pahang: [
+    "Hospital Tengku Ampuan Afzan, Kuantan",
+    "Hospital Sultan Hj Ahmad Shah, Temerloh",
+    "Hospital Kuala Lipis",
+    "Hospital Raub",
+    "Hospital Rompin",
+    "Hospital Muadzam Shah",
+    "Hospital Pekan",
+    "Hospital Jengka",
+    "Hospital Bentong",
+    "Hospital Sultanah Hajjah Kalsom, Cameron Highlands",
+    "Hospital Bera",
+    "Hospital Jerantut"
+  ],
+
+  Perak: [
+    "Hospital Tapah",
+    "Hospital Kampar",
+    "Hospital Raja Permaisuri Bainun",
+    "Hospital Slim River",
+    "Hospital Teluk Intan",
+    "Hospital Seri Manjung",
+    "Hospital Taiping",
+    "Hospital Gerik",
+    "Hospital Seri Iskandar",
+    "Hospital Batu Gajah",
+    "Hospital Selama",
+    "Hospital Parit Buntar",
+    "Hospital Sungai Siput",
+    "Hospital Kuala Kangsar",
+    "Hospital Bahagia Ulu Kinta"
+  ],
+
+  Perlis: [
+    "Hospital Tuanku Fauziah"
+  ],
+
+  "Pulau Pinang": [
+    "Hospital Kepala Batas",
+    "Hospital Pulau Pinang",
+    "Hospital Seberang Jaya",
+    "Hospital Sungai Bakap",
+    "Hospital Bukit Mertajam",
+    "Hospital Balik Pulau"
+  ],
+
+  Sabah: [
+    "Hospital Kota Marudu",
+    "Hospital Beaufort",
+    "Hospital Queen Elizabeth II",
+    "Hospital Queen Elizabeth",
+    "Hospital Tawau",
+    "Hospital Lahad Datu",
+    "Hospital Duchess Of Kent",
+    "Hospital Keningau",
+    "Hospital Beluran",
+    "Hospital Ranau",
+    "Hospital Kinabatangan",
+    "Hospital Kudat",
+    "Hospital Tambunan",
+    "Hospital Tuaran",
+    "Hospital Kunak",
+    "Hospital Kota Belud",
+    "Hospital Kuala Penyu",
+    "Hospital Pitas",
+    "Hospital Semporna",
+    "Hospital Papar",
+    "Hospital Tenom",
+    "Hospital Sipitang",
+    "Hospital Mesra Bukit Padang",
+    "Hospital Wanita & Kanak-Kanak, Likas"
+  ],
+
+  Sarawak: [
+    "Hospital Daro",
+    "Hospital Rajah Charles Brooke Memorial",
+    "Hospital Umum Sarawak",
+    "Hospital Miri",
+    "Hospital Bintulu",
+    "Hospital Sibu",
+    "Hospital Sri Aman",
+    "Hospital Marudi",
+    "Hospital Bau",
+    "Hospital Serian",
+    "Hospital Mukah",
+    "Hospital Limbang",
+    "Hospital Kapit",
+    "Hospital Saratok",
+    "Hospital Sarikei",
+    "Hospital Betong",
+    "Hospital Lundu",
+    "Hospital Simunjan",
+    "Hospital Lawas",
+    "Hospital Kanowit",
+    "Hospital Dalat",
+    "Hospital Sentosa",
+    "Pusat Jantung Sarawak"
+  ],
+
+  Selangor: [
+    "Hospital Sungai Buloh",
+    "Hospital Shah Alam",
+    "Hospital Banting",
+    "Hospital Ampang",
+    "Hospital Sultan Idris Shah",
+    "Hospital Kuala Kubu Baru",
+    "Hospital Selayang",
+    "Hospital Orang Asli, Gombak",
+    "Hospital Tanjong Karang",
+    "Hospital Tengku Ampuan Jemaah, Sabak Bernam",
+    "Hospital Tengku Ampuan Rahimah",
+    "Hospital Tengku Permaisuri Norashikin",
+    "Hospital Cyberjaya"
+  ],
+
+  Terengganu: [
+    "Hospital Sultanah Nur Zahirah",
+    "Hospital Hulu Terengganu",
+    "Hospital Setiu",
+    "Hospital Dungun",
+    "Hospital Besut",
+    "Hospital Kemaman"
+  ],
+
+  "W.P. Kuala Lumpur (HKL-HTA-IPR)": [
+    "Hospital Kuala Lumpur",
+    "Institut Perubatan Respiratori",
+    "Hospital Tunku Azizah"
+  ],
+
+  "W.P. Labuan": [
+    "Hospital Labuan"
+  ],
+
+  "W.P. Putrajaya (IKN)": [
+    "Institut Kanser Negara"
+  ]
+};
+
+
+Object.keys(hospitalsByState).forEach(state => {
+  hospitalsByState[state].sort();
+});
+
+const servicesList = [
+  "Dermatologi (Dermatology)",
+  "Endokrinologi (Endocrinology)",
+  "Endodontik (Endodontics)",
+  "Epidemiologi Penyakit Tidak Berjangkit (Non-Communicable Disease Epidemiology)",
+  "Gastroenterologi & Hepatologi (Gastroenterology & Hepatology)",
+  "Genetik Klinikal (Clinical Genetics)",
+  "Geriatrik (Geriatric)",
+  "Hematologi (Haematology)",
+  "Jabatan Kecemasan & Trauma (Emergency Medicine)",
+  "Kardiologi (Cardiology)",
+  "Kardiologi Pediatrik (Paediatric Cardiology)",
+  "Kecemasan Pediatrik (Paediatric Emergency Medicine)",
+  "Kesihatan Awam Pergigian (Dental Public Health)",
+  "Nefrologi (Nephrology)",
+  "Neonatologi (Neonatology)",
+  "Neurologi (Neurology)",
+  "Neuroketidakupayaan & Pemulihan Pediatrik (Paediatric Neuro-disability & Rehabilitation)",
+  "Odontologi Forensik (Forensic Odontology)",
+  "Onkologi (Oncology)",
+  "Ortodontik (Orthodontics)",
+  "Pediatrik (Paediatric)",
+  "Penyakit Berjangkit (Infectious Disease)",
+  "Pergigian Keperluan Khas (Special Care Dentistry)",
+  "Pergigian Pediatrik (Paediatric Dentistry)",
+  "Pergigian Restoratif (Restorative Dentistry)",
+  "Periodontologi (Periodontology)",
+  "Perubatan Am (General Medicine)",
+  "Perubatan Dalaman Akut (Acute Internal Medicine)",
+  "Perubatan Forensik (Forensic Medicine)",
+  "Perubatan Ibu & Janin (Maternal Fetal Medicine)",
+  "Perubatan Keluarga (Family Medicine)",
+  "Perubatan Nuklear (Nuclear Medicine)",
+  "Perubatan Paliatif (Palliative Medicine)",
+  "Perubatan Pemulihan (Rehabilitation Medicine)",
+  "Perubatan Remaja (Adolescent Medicine)",
+  "Perubatan Reproduktif (Reproductive Medicine)",
+  "Perubatan Respiratori (Respiratory Medicine)",
+  "Perubatan Sukan (Sports Medicine)",
+  "Prostodontik (Prosthodontics)",
+  "Psikiatri (Psychiatry)",
+  "Radioterapi (Radiotherapy)",
+  "Reumatologi (Rheumatology)",
+  "Teranostik (Theranostics)",
+  "Neurosurgeri (Neurosurgery)",
+  "Obstetrik & Ginekologi (Obstetrics & Gynaecology)",
+  "Oftalmologi (Ophthalmology)",
+  "Onkologi Ginekologi (Gynae-Oncology)",
+  "Ortopedik (Orthopaedics)",
+  "Otorinolaringologi (Otorhinolaryngology)",
+  "Pembedahan Am (General Surgery)",
+  "Pembedahan Gastrointestinal Atas (Upper GI Surgery)",
+  "Pembedahan Hepatobiliari (Hepatobiliary Surgery)",
+  "Pembedahan Kardiotorasik (Cardiothoracic Surgery)",
+  "Pembedahan Kolorektal (Colorectal Surgery)",
+  "Pembedahan Luka Terbakar & Trauma (Burn & Trauma Surgery)",
+  "Pembedahan Onkologi Pediatrik (Paediatric Surgical Oncology)",
+  "Pembedahan Oral & Maksilofasial (Oral and Maxillofacial Surgery)",
+  "Pembedahan Payudara & Endokrin (Breast & Endocrine Surgery)",
+  "Pembedahan Pediatrik (Paediatric Surgery)",
+  "Pembedahan Plastik & Rekonstruktif (Plastic & Reconstructive Surgery)",
+  "Pembedahan Trauma (Trauma Surgery)",
+  "Pembedahan Trauma Kraniomaksilofasial & Tulang (Craniomaxillofacial Trauma and Bone Surgery)",
+  "Pembedahan Tulang Belakang (Spine Surgery)",
+  "Pembedahan Vaskular (Vascular Surgery)",
+  "Trauma Muskuloskeletal Lanjutan (Advanced Musculoskeletal Trauma)",
+  "Uroginekologi (Uro-gynaecology)",
+  "Urologi (Urology)",
+  "Urologi Rekonstruktif Pediatrik (Paediatric Reconstructive Urology)",
+  "Anestesia Jantung (Cardiac Anaesthesia)",
+  "Anestesia Vaskular (Vascular Anaesthesia)",
+  "Anestesiologi (Anaesthesiology)",
+  "Jabatan Dietetik & Sajian (Dietetics & Food Services Department)",
+  "Jabatan Farmasi (Pharmacy Department)",
+  "Jabatan Kerja Sosial Perubatan (Medical Social Work Department)",
+  "Jabatan Pesakit Luar (Outpatient Department)",
+  "Jabatan Radiologi (Radiology)",
+  "Jabatan Rekod Perubatan (Medical Records Department)",
+  "Kesihatan Pekerjaan (Occupational Health)",
+  "Kesihatan Persekitaran (Environmental Health)",
+  "Mikrobiologi Perubatan (Medical Microbiology)",
+  "Patologi (Pathology)",
+  "Patologi Anatomi (Anatomical Pathology)",
+  "Patologi Forensik (Forensic Pathology)",
+  "Patologi Genetik (Genetic Pathology)",
+  "Patologi Kimia (Chemical Pathology)",
+  "Perkhidmatan Kesihatan Bersekutu (Allied Health Services)",
+  "Perkhidmatan Pesakit Bayar Penuh (Full Paying Patient)",
+  "Perubatan Transfusi (Transfusion Medicine)",
+  "Pusat Anggota Palsu (Artificial Limb Centre)",
+  "Radiologi Intervensi (Interventional Radiology)",
+  "Radiologi Jantung (Cardiac Radiology)",
+  "Radiologi Oral & Maksilofasial (Oral and Maxillofacial Radiology)",
+  "Radiologi Payudara (Breast Radiology)",
+  "Radiologi Pediatrik (Paediatric Radiology)",
+  "Tabung Darah (Blood Bank)",
+  "Unit Bekalan Steril Berpusat (Central Sterile Supply Department)",
+  "Unit Casemix (Casemix Unit)",
+  "Unit Fisioterapi (Physiotherapy Unit)",
+  "Unit Hemodialisis (Hemodialysis Unit)",
+  "Unit Kawalan Infeksi (Infection Control Unit)",
+  "Unit Kejuruteraan (Engineering Unit)",
+  "Unit Kejururawatan (Nursing Unit)",
+  "Unit Keselamatan & Kesihatan Pekerjaan (Occupational Safety & Health Unit)",
+  "Unit Kesihatan Awam (Public Health Unit)",
+  "Unit Kewangan & Hasil (Finance & Revenue Unit)",
+  "Unit Medikolegal (Medicolegal Unit)",
+  "Unit Pendidikan Kesihatan (Health Education Unit)",
+  "Unit Pendidikan Perubatan Berterusan (Continuous Medical Education Unit)",
+  "Unit Pengurusan Kualiti (Quality Management Unit)",
+  "Unit Penjagaan Luka (Wound Care Unit)",
+  "Unit Penolong Pegawai Perubatan (Assistant Medical Officer Unit)",
+  "Unit Pentadbiran & Pembangunan (Administration & Development Unit)",
+  "Unit Perhubungan Awam (Public Relations Unit)",
+  "Unit Perolehan & Aset (Procurement & Asset Unit)",
+  "Unit Psikologi & Kaunseling (Psychology & Counselling Unit)",
+  "Unit Rawatan Harian (Daycare Unit)",
+  "Unit Sumber Manusia (Human Resources Unit)",
+  "Unit Teknologi Maklumat (Information Technology Unit)",
+  "Unit Terapi Carakerja (Occupational Therapy Unit)",
+  "Lain-lain (Others)"
+];
+
+        const populateStateSelect = () => {
+            const stateSelect = $('#state-select');
+            stateSelect.empty().append('<option></option>');
+            statesList.forEach(state => {
+                const option = new Option(state, state, false, false);
+                stateSelect.append(option);
+            });
+            stateSelect.trigger('change');
+        };
+
+        const updateHospitalSelect = (stateValue) => {
+            const hospitalSelect = $('#hospital-select');
+            hospitalSelect.empty().append('<option></option>');
+
+            let hospitals = [];
+            if (hospitalsByState[stateValue]) {
+                hospitals = hospitalsByState[stateValue];
+            }
+
+            hospitals.forEach(hospital => {
+                const option = new Option(hospital, hospital, false, false);
+                hospitalSelect.append(option);
+            });
+            hospitalSelect.trigger('change');
+        };
+
+        const validateStateAndHospital = () => {
+            const stateValue = $('#state-select').val();
+            const hospitalValue = $('#hospital-select').val();
+
+            if (!stateValue) {
+                alert("Please select a state.");
+                return false;
+            }
+            if (!hospitalValue) {
+                alert("Please select a hospital.");
+                return false;
+            }
+            return true;
+        };
+
+        // --- GLOBAL VARIABLES & CHART INITIALIZATION ---
+        const langSelect = document.getElementById('language-select');
+        const printButton = document.getElementById('print-button');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const surveyForm = document.getElementById('surveyForm');
+        const emojis = ['😠', '🙁', '😐', '🙂', '😄'];
+        let myRadarChart; 
+
+        // --- SUBMISSION COUNT LOGIC ---
+        function fetchAndParseData() {
+            const sheetId = '1Mw9tSIGbQiFHkIqXSv5P1BjPTat8RWwdV0JJGz-GEbk';
+            const gid = '0'; 
+            const query = 'SELECT A, B, C'; 
+            const cacheBuster = new Date().getTime();
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:handleGvizResponse;out:json&tq=${encodeURIComponent(query)}&gid=${gid}&_nocache=${cacheBuster}`;
+            
+            const script = document.createElement('script');
+            script.src = url;
+            script.onerror = function() {
+                console.error('Failed to load GVIZ script');
+                const submissionCountSpan = document.getElementById('submission-count');
+                if (submissionCountSpan) submissionCountSpan.textContent = '';
+            };
+            document.body.appendChild(script);
+        }
+
+        window.updateSubmissionCount = function() {
+            const submissionCountSpan = document.getElementById('submission-count');
+            if (!submissionCountSpan) return;
+
+            const hospitalInputVal = $('#hospital-select').val();
+            const treatmentRadio = document.querySelector('input[name="treatmentLocation"]:checked');
+            const submissionText = "No. of Submission:";
+
+            if (!hospitalInputVal || !treatmentRadio) {
+                submissionCountSpan.textContent = `${submissionText} N/A`;
+                return;
+            }
+
+            const treatmentType = treatmentRadio.value;
+            const record = gvizData.find(item => item.hospital && item.hospital.toLowerCase() === hospitalInputVal.toLowerCase());
+
+            if (record) {
+                const count = (treatmentType === 'inpatient') ? record.inpatient : record.outpatient;
+                submissionCountSpan.textContent = `${submissionText} ${count}`;
+            } else {
+                submissionCountSpan.textContent = `${submissionText} N/A`;
+            }
+        };
+
+        // --- CORE FUNCTIONS ---
+        const updateMetrics = () => {
+            document.querySelectorAll('.likert-scale label').forEach(l => l.classList.remove('selected-for-print'));
+            
+            const scores = [];
+            for (let i = 0; i < 7; i++) {
+                const selected = surveyForm.querySelector(`input[name="q${i + 1}"]:checked`);
+                if (selected) {
+                    selected.closest('label').classList.add('selected-for-print');
+                    scores.push(parseInt(selected.value, 10));
+                } else {
+                    scores.push(0);
+                }
+            }
+        };
+
+        const lockTreatmentOptions = (urlParams) => {
+            const treatmentParam = urlParams.get('treatment');
+            const treatmentTextParam = urlParams.get('treatmentText');
+            
+            if (treatmentParam) {
+                const radio = document.querySelector(`input[name="treatmentLocation"][value="${treatmentParam}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change')); 
+                    
+                    document.querySelectorAll('input[name="treatmentLocation"]').forEach(r => {
+                       r.style.pointerEvents = 'none';
+                       r.parentElement.classList.add('locked-input');
+                    });
+
+                    const textInput = document.getElementById(`${treatmentParam}-text`);
+                    if (textInput && treatmentTextParam) {
+                        textInput.value = treatmentTextParam;
+                        textInput.classList.add('locked-input');
+                    }
+                }
+            }
+        };
+        
+        const updateUI = (lang) => {
+            const data = translations[lang] || translations['ms'];
+            document.documentElement.lang = lang;
+            
+            const setText = (id, key) => {
+                const element = document.getElementById(id);
+                if (element && data[key]) {
+                    element.textContent = data[key];
+                }
+            };
+
+            const setHtml = (id, key) => {
+                const element = document.getElementById(id);
+                if (element && data[key]) {
+                    element.innerHTML = data[key];
+                }
+            };
+
+            setText('survey-title', 'title');
+            setText('lang-label', 'langLabel');
+            setText('print-button', 'printBtn');
+			setText('reset-button', 'resetBtn');
+            setText('submit-button', 'submitBtn');
+            
+            setHtml('intro-text-container', 'introHtml'); 
+
+            setText('demographics-title', 'demographicsTitle');
+            setText('state-label', 'stateLabel');
+            setText('hospital-label', 'hospitalLabel');
+            setText('gender-label', 'genderLabel');
+            setText('age-label', 'ageLabel');
+            setText('ethnicity-label', 'ethnicityLabel');
+            setText('marital-status-label', 'maritalStatusLabel');
+            setText('education-label', 'educationLabel');
+            setText('occupation-label', 'occupationLabel');
+            setText('context-title', 'contextTitle');
+            setText('treatment-location-label', 'treatmentLocationLabel');
+            setText('service-location-label', 'serviceLocationLabel');
+            
+            setText('facilities-title', 'facilitiesTitle');
+			setText('facilities-comment-label-id','facilitiesCommentLabel');
+            setText('mypsq-title', 'mypsqTitle');
+            setText('comments-title', 'commentsTitle');
+            setText('appraisal-title', 'appraisalTitle');
+            
+            setText('chart-title', 'chartTitle'); 
+            setText('overall-score-title', 'overallScoreTitle'); 
+            setText('score-explanation', 'scoreExplanation'); 
+            
+            setText('modal-title', 'modalTitle');
+            setText('footer-text', 'footer');
+
+            const createRadioOptions = (containerId, name, options) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                Object.keys(options).forEach((key, index) => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'radio'; input.name = name; input.value = key;
+                    if (index === 0) input.required = true;
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${options[key]}`));
+                    container.appendChild(label);
+                });
+            };
+            
+            createRadioOptions('gender-options', 'gender', data.genderOptions);
+            createRadioOptions('age-options', 'age', data.ageOptions);
+            createRadioOptions('ethnicity-options', 'ethnicity', data.ethnicityOptions);
+            createRadioOptions('marital-status-options', 'maritalStatus', data.maritalStatusOptions);
+            createRadioOptions('education-options', 'education', data.educationOptions);
+            createRadioOptions('occupation-options', 'occupation', data.occupationOptions);
+            
+            const treatmentContainer = document.getElementById('treatment-location-options');
+            treatmentContainer.innerHTML = '';
+            Object.keys(data.treatmentLocationOptions).forEach((key, index) => {
+                const div = document.createElement('div');
+                div.className = 'radio-grid';
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio'; radio.name = 'treatmentLocation'; radio.value = key;
+                if (index === 0) radio.required = true;
+                const textInput = document.createElement('input');
+                textInput.type = 'text'; textInput.id = `${key}-text`; textInput.disabled = true;
+                
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(` ${data.treatmentLocationOptions[key]}`));
+                div.appendChild(label);
+                div.appendChild(textInput);
+                treatmentContainer.appendChild(div);
+
+                radio.addEventListener('change', (e) => {
+                    document.querySelectorAll('#treatment-location-options input[type=text]').forEach(inp => { inp.disabled = true; inp.value = ''; });
+                    textInput.disabled = false;
+                    if (e && e.isTrusted) {
+                        textInput.focus();
+                    }
+                });
+            });
+
+            const createLikertScale = (qIdText, qScaleId, qText, qName, customScale = null) => {
+                const textElement = document.getElementById(qIdText);
+                if (textElement) textElement.textContent = qText;
+
+                const scaleContainer = document.getElementById(qScaleId);
+                if (!scaleContainer) return;
+                
+                const checkedRadioNode = surveyForm.querySelector(`input[name="${qName}"]:checked`);
+                const currentlyChecked = checkedRadioNode ? checkedRadioNode.value : null;
+
+                scaleContainer.innerHTML = ''; 
+                const currentLangData = translations[langSelect.value] || translations['ms'];
+                const scaleLabels = customScale || currentLangData.scale;
+
+                scaleLabels.forEach((label, index) => {
+                    const value = index + 1;
+                    const labelElement = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = qName;
+                    input.value = value;
+                    if (index === 0) input.required = true;
+                    if (currentlyChecked && parseInt(currentlyChecked) === value) input.checked = true;
+
+                    const emojiSpan = document.createElement('span');
+                    emojiSpan.className = 'emoji';
+                    emojiSpan.textContent = emojis[index];
+
+                    const optionSpan = document.createElement('span');
+                    optionSpan.className = 'likert-option';
+                    optionSpan.textContent = label;
+
+                    labelElement.appendChild(emojiSpan);
+                    labelElement.appendChild(input);
+                    labelElement.appendChild(optionSpan);
+
+                    scaleContainer.appendChild(labelElement);
+                });
+            };
+            
+            createLikertScale('q-facilities-text', 'q-facilities-scale', data.facilitiesQuestion, 'q_facilities', data.facilitiesScale);
+            
+            for (let i = 1; i <= 7; i++) {
+                createLikertScale(`q${i}-text`, `q${i}-scale`, data.questions[i-1], `q${i}`);
+            }
+
+            const createTagButtons = (containerId, tags) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                if (!tags) return;
+                tags.forEach(tagText => {
+                    const button = document.createElement('button');
+                    button.type = 'button'; button.className = 'dimension-tag'; button.textContent = tagText;
+                    button.addEventListener('click', function() { this.classList.toggle('selected'); });
+                    container.appendChild(button);
+                });
+            };
+
+            createTagButtons('facilities-tags-container', data.facilitiesTags);
+            lockTreatmentOptions(new URLSearchParams(window.location.search));
+            
+            if (myRadarChart) {
+                myRadarChart.update();
+            }
+        };
+
+        const collectFormData = () => {
+            const lang = langSelect.value;
+            const t = translations[lang] || translations['ms'];
+            let summary = "";
+
+            const getRadioLabel = (name, options) => {
+                const selected = surveyForm.querySelector(`input[name="${name}"]:checked`);
+                return selected ? options[selected.value] : 'Not Answered';
+            };
+            
+            summary += `--- ${t.demographicsTitle} ---\n`;
+            summary += `${t.stateLabel} ${$('#state-select').val() || 'Not provided'}\n`;
+            summary += `${t.hospitalLabel} ${$('#hospital-select').val() || 'Not provided'}\n`;
+            summary += `${t.genderLabel} ${getRadioLabel('gender', t.genderOptions)}\n`;
+            summary += `${t.ageLabel} ${getRadioLabel('age', t.ageOptions)}\n`;
+            summary += `${t.ethnicityLabel} ${getRadioLabel('ethnicity', t.ethnicityOptions)}\n`;
+            summary += `${t.maritalStatusLabel} ${getRadioLabel('maritalStatus', t.maritalStatusOptions)}\n`;
+            summary += `${t.educationLabel} ${getRadioLabel('education', t.educationOptions)}\n`;
+            summary += `${t.occupationLabel} ${getRadioLabel('occupation', t.occupationOptions)}\n\n`;
+            
+            summary += `--- ${t.contextTitle} ---\n`;
+            const treatmentLoc = surveyForm.querySelector('input[name="treatmentLocation"]:checked');
+            summary += `${t.treatmentLocationLabel} ${treatmentLoc ? t.treatmentLocationOptions[treatmentLoc.value] + ' ' + document.getElementById(`${treatmentLoc.value}-text`).value : 'Not answered'}\n`;
+            summary += `${t.serviceLocationLabel} ${$('#service-location-select').val() || 'Not provided'}\n\n`;
+
+            summary += `--- ${t.mypsqTitle} ---\n`;
+            for(let i = 1; i <= 7; i++) {
+                const score = surveyForm.querySelector(`input[name="q${i}"]:checked`);
+                summary += `${t.questions[i-1]}: ${score ? t.scale[score.value-1] : 'Not answered'}\n`;
+            }
+
+            summary += `\n--- ${t.commentsTitle} ---\n`;
+            summary += `Comment: ${document.getElementById('comments-textarea').value || 'None'}\n\n`;
+            
+            summary += `--- ${t.appraisalTitle} ---\n`;
+            summary += `${document.getElementById('appraisal-textarea').value || 'None'}\n\n`;
+
+            summary += `--- ${t.facilitiesTitle} ---\n`;
+            const facilitiesScore = surveyForm.querySelector('input[name="q_facilities"]:checked');
+            summary += `Score: ${facilitiesScore ? t.facilitiesScale[facilitiesScore.value-1] : 'Not answered'}\n`;
+            const selectedNodes = document.querySelectorAll('#facilities-tags-container .selected');
+            const selectedFacilitiesTagsArray = [];
+            for (let i = 0; i < selectedNodes.length; i++) {
+                selectedFacilitiesTagsArray.push(selectedNodes[i].textContent);
+            }
+            summary += `Tagged Infrastructure: ${selectedFacilitiesTagsArray.join(', ') || 'None'}\n`;
+            summary += `Comment: ${document.getElementById('facilities-textarea').value || 'None'}\n\n`;
+
+            return summary.trim();
+        };
+
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            darkModeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', theme);
+        };
+
+        const prefillFormFromUrl = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const langFromUrl = urlParams.get('language');
+            if (langFromUrl && translations[langFromUrl]) {
+                langSelect.value = langFromUrl;
+            }
+            updateUI(langSelect.value);
+
+            lockPrefilledFields(urlParams);
+
+            let prefillOccurred = false;
+            const allQs = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q_facilities'];
+            allQs.forEach(qName => {
+                const score = urlParams.get(qName);
+                if (score) {
+                    const radio = document.querySelector(`input[name="${qName}"][value="${score}"]`);
+                    if(radio) { radio.checked = true; prefillOccurred = true; }
+                }
+            });
+            
+            if (prefillOccurred) {
+                updateMetrics();
+            }
+        };
+		
+        const lockPrefilledFields = (urlParams) => {
+            const stateParam = urlParams.get('state');
+            const hospitalParam = urlParams.get('hospital');
+            const serviceParam = urlParams.get('service');
+            
+            if (stateParam) {
+                $('#state-select').val(stateParam).trigger('change');
+                $('#state-select').addClass('locked-input'); 
+                $('#state-select').addClass('locked-input'); 
+                $('#state-select').next('.select2-container').addClass('locked-input');
+            }
+
+            if (hospitalParam) {
+                setTimeout(() => {
+                    $('#hospital-select').val(hospitalParam).trigger('change');
+                    $('#hospital-select').addClass('locked-input'); 
+                    $('#hospital-select').addClass('locked-input'); 
+                    $('#hospital-select').next('.select2-container').addClass('locked-input');
+                }, 100);
+            }
+
+            if (serviceParam) {
+                $('#service-location-select').val(serviceParam).trigger('change');
+                $('#service-location-select').addClass('locked-input'); 
+                $('#service-location-select').addClass('locked-input'); 
+                $('#service-location-select').next('.select2-container').addClass('locked-input');
+            }
+
+            lockTreatmentOptions(urlParams);
+        };
+		
+        const initialLangData = translations[langSelect.value] || translations['ms'];
+        try {
+            if (typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('satisfactionRadarChart').getContext('2d');
+                myRadarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Q1','Q2','Q3','Q4','Q5','Q6','Q7'], 
+                        datasets: [{
+                            label: 'Score', data: [0, 0, 0, 0, 0, 0, 0], 
+                            fill: true, 
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)', 
+                            borderColor: 'rgba(0, 123, 255, 1)',
+                            pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(0, 123, 255, 1)'
+                        }]
+                    },
+                    options: {
+                        scales: { r: { beginAtZero: true, min: 0, max: 5, stepSize: 1, ticks: { display: false } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            } else {
+                console.warn("Chart.js disekat. Mengabaikan carta.");
+            }
+        } catch (error) {
+            console.error("Ralat melukis carta:", error);
+        }
+
+        try {
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('#state-select').select2({ placeholder: "Pilih Negeri", allowClear: true, theme: "bootstrap-5" });
+                $('#hospital-select').select2({ placeholder: "Pilih Hospital/Fasiliti", allowClear: true, theme: "bootstrap-5" });
+                $('#service-location-select').select2({ placeholder: "Pilih Jabatan/Perkhidmatan", allowClear: true, theme: "bootstrap-5" });
+            } else {
+                console.warn("Select2 disekat. Menggunakan paparan dropdown asal (Native).");
+            }
+        } catch (error) {
+            console.error("Ralat memulakan Select2:", error);
+        }
+
+        $('#state-select').on('change', function() {
+            const selectedState = $(this).val();
+            updateHospitalSelect(selectedState); 
+            window.updateSubmissionCount(); 
+            $('#print-state-select').text(selectedState || '');
+        });
+
+        $('#hospital-select').on('change', function() {
+            window.updateSubmissionCount();
+            $('#print-hospital-select').text($(this).val() || '');
+        });
+
+        $('#service-location-select').on('change', function() {
+            $('#print-service-select').text($(this).val() || '');
+        });
+
+        document.getElementById('treatment-location-options').addEventListener('change', window.updateSubmissionCount);
+        langSelect.addEventListener('change', (e) => updateUI(e.target.value));
+        printButton.addEventListener('click', () => { window.print(); });
+
+        darkModeToggle.addEventListener('click', () => {
+            const newTheme = (document.documentElement.getAttribute('data-theme') || 'light') === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+        });
+
+        surveyForm.addEventListener('change', updateMetrics);
+
+        function resetFormAfterSubmission() {
+             surveyForm.reset(); 
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            lockPrefilledFields(urlParams);
+            
+            if (!urlParams.get('state')) $('#state-select').val(null).trigger('change');
+            if (!urlParams.get('hospital')) $('#hospital-select').val(null).trigger('change');
+            if (!urlParams.get('service')) $('#service-location-select').val(null).trigger('change');
+            
+            document.querySelectorAll('#facilities-tags-container .selected').forEach(tag => tag.classList.remove('selected'));
+            document.getElementById('score-percentage').textContent = '0%';
+            
+            fetchAndParseData();
+            updateMetrics();
+            window.scrollTo(0, 0);
+        }
+
+        // =========================================================
+        // REWRITTEN SUBMISSION LOGIC: CLEAN JSON & FETCH API POST
+        // =========================================================
+        document.getElementById('submit-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // 1. Validate Form First
+            if (!surveyForm.checkValidity()) {
+                surveyForm.reportValidity();
+                return;
+            }
+
+            if (!validateStateAndHospital()) {
+                return; 
+            }
+
+            // 2. Check GVIZ Quota Block
+            const submissionCountSpan = document.getElementById('submission-count');
+            if (submissionCountSpan) {
+                const submissionText = submissionCountSpan.textContent;
+                const parts = submissionText.split(':');
+                const countStr = parts.length > 1 ? parts[1].trim() : '';
+                const count = parseInt(countStr, 10);
+
+                if (!isNaN(count) && count >= 501) {
+                    const t = translations[langSelect.value] || translations['ms'];
+                    alert(t.submissionBlocked); 
+                    return; 
+                }
+            }
+
+            // Update Summary Display
+            document.getElementById('modal-summary').textContent = collectFormData();
+            document.getElementById('summary-modal').style.display = 'flex';
+
+            const t = translations['ms'];
+
+            const getRadioValue = (name) => {
+                const selected = surveyForm.querySelector(`input[name="${name}"]:checked`);
+                return selected ? selected.value : '';
+            };
+            
+            const treatmentLoc = surveyForm.querySelector('input[name="treatmentLocation"]:checked');
+            const facilitiesScore = surveyForm.querySelector('input[name="q_facilities"]:checked');
+            
+            const selectedNodes = document.querySelectorAll('#facilities-tags-container .selected');
+            const selectedFacilitiesTagsArray = [];
+            for (let i = 0; i < selectedNodes.length; i++) {
+                const tag = selectedNodes[i];
+                const userLang = translations[langSelect.value] || translations['ms'];
+                const tagIndex = userLang.facilitiesTags.indexOf(tag.textContent);
+                selectedFacilitiesTagsArray.push(tagIndex !== -1 ? t.facilitiesTags[tagIndex] : tag.textContent);
+            }
+            
+            const langMap = { ms: 'MS', en: 'EN', zh: 'ZH', ta: 'TA', iban: 'IBAN', kd: 'KD' };
+            const selectedLangCode = langMap[langSelect.value] || 'MS';
+            const appraisalValue = document.getElementById('appraisal-textarea').value || '';
+
+            // 3. BUILD THE CLEAN JSON PAYLOAD (MATCHING THE APPS SCRIPT EXPECTATIONS)
+            const payload = {
+                negeri: $('#state-select').val() || '',
+                hospital: $('#hospital-select').val() || '',
+                jantina: getRadioValue('gender') ? t.genderOptions[getRadioValue('gender')] : '',
+                umur: getRadioValue('age') ? t.ageOptions[getRadioValue('age')] : '',
+                bangsa: getRadioValue('ethnicity') ? t.ethnicityOptions[getRadioValue('ethnicity')] : '',
+                perkahwinan: getRadioValue('maritalStatus') ? t.maritalStatusOptions[getRadioValue('maritalStatus')] : '',
+                pendidikan: getRadioValue('education') ? t.educationOptions[getRadioValue('education')] : '',
+                pekerjaan: getRadioValue('occupation') ? t.occupationOptions[getRadioValue('occupation')] : '',
+                jenisPesakit: treatmentLoc ? t.treatmentLocationOptions[treatmentLoc.value] : '',
+                detailDalam: document.getElementById('inpatient-text') ? document.getElementById('inpatient-text').value : '',
+                detailLuar: document.getElementById('outpatient-text') ? document.getElementById('outpatient-text').value : '',
+                jabatan: $('#service-location-select').val() || '',
+                skorFasiliti: facilitiesScore ? facilitiesScore.value : '',
+                tagFasiliti: selectedFacilitiesTagsArray.join(', '),
+                komenFasiliti: document.getElementById('facilities-textarea').value || '',
+                q1: surveyForm.querySelector(`input[name="q1"]:checked`)?.value || '',
+                q2: surveyForm.querySelector(`input[name="q2"]:checked`)?.value || '',
+                q3: surveyForm.querySelector(`input[name="q3"]:checked`)?.value || '',
+                q4: surveyForm.querySelector(`input[name="q4"]:checked`)?.value || '',
+                q5: surveyForm.querySelector(`input[name="q5"]:checked`)?.value || '',
+                q6: surveyForm.querySelector(`input[name="q6"]:checked`)?.value || '',
+                q7: surveyForm.querySelector(`input[name="q7"]:checked`)?.value || '',
+                komen: document.getElementById('comments-textarea').value || '',
+                testimoni: appraisalValue ? `(${selectedLangCode}) - ${appraisalValue}` : ''
+            };
+
+            const submitBtn = document.getElementById('submit-button');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Menghantar... (Sending...)";
+
+            // 4. SEND THE DATA USING FETCH API TO GOOGLE APPS SCRIPT
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors", // Required for Google Apps Script Web Apps when accessed from outside domains
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8" // Trick to prevent preflight CORS error 
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                // Because we use "no-cors", we can't read the exact JSON response, but it implies it was successfully sent.
+                const summaryModal = document.getElementById('summary-modal');
+                if (summaryModal) summaryModal.style.display = 'none';
+                
+                alert("Maklum balas anda telah dihantar! Borang akan diset semula.");
+                resetFormAfterSubmission();
+
+                // Start cooldown
+                let waitTimeMs = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000; 
+                let countdown = Math.ceil(waitTimeMs / 1000);
+
+                submitBtn.style.backgroundColor = "#6c757d"; 
+                submitBtn.innerText = `Sila tunggu ${countdown} saat...`;
+
+                const timer = setInterval(() => {
+                    countdown--;
+                    submitBtn.innerText = `Sila tunggu ${countdown} saat...`;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        submitBtn.disabled = false;
+                        submitBtn.style.backgroundColor = ""; 
+                        
+                        const langSelect = document.getElementById('language-select');
+                        const t = translations[langSelect.value] || translations['ms'];
+                        submitBtn.innerText = t.submitBtn; 
+                    }
+                }, 1000);
+            })
+            .catch((error) => {
+                console.error("Error submitting form:", error);
+                alert("Maaf, terdapat ralat semasa menghantar borang. Sila cuba lagi.");
+                submitBtn.disabled = false;
+                const langSelect = document.getElementById('language-select');
+                const t = translations[langSelect.value] || translations['ms'];
+                submitBtn.innerText = t.submitBtn; 
+            });
+        });
+
+        document.getElementById('modal-close-button').addEventListener('click', () => {
+            document.getElementById('summary-modal').style.display = 'none';
+        });
+
+        document.getElementById('reset-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            surveyForm.reset(); 
+            
+            $('.locked-input').removeClass('locked-input');
+            document.querySelectorAll('.locked-input').forEach(el => el.classList.remove('locked-input'));
+            document.querySelectorAll('input[name="treatmentLocation"]').forEach(r => {
+                r.style.pointerEvents = 'auto';
+            });
+            
+            $('#state-select').val(null).trigger('change');
+            $('#hospital-select').val(null).trigger('change');
+            $('#service-location-select').val(null).trigger('change');
+            
+            $('.print-only-text').text('');
+
+            document.getElementById('facilities-textarea').value = '';
+            document.getElementById('comments-textarea').value = '';
+            document.getElementById('appraisal-textarea').value = '';
+            document.querySelectorAll('#facilities-tags-container .selected').forEach(tag => tag.classList.remove('selected'));
+            
+            document.getElementById('score-percentage').textContent = '0%';
+            document.querySelectorAll('input[type="radio"]:checked').forEach(radio => radio.checked = false);
+            
+            updateUI(langSelect.value);
+            updateMetrics(); 
+            
+            window.scrollTo(0, 0);
+        });
+        
+        populateStateSelect();
+        populateServiceSelect();
+        prefillFormFromUrl(); 
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        updateMetrics(); 
+        fetchAndParseData(); 
+    });
+</script>
+</body>
+</html>
