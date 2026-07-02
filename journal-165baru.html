@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPSQ: Development and Technical Validation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        primary: '#1e3a8a',
+                        secondary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @media print {
+            body { background-color: white !important; font-size: 11pt; }
+            .no-print { display: none !important; }
+            .print-break-inside-avoid { break-inside: avoid !important; page-break-inside: avoid !important; }
+            .print-page-break-before { break-before: page !important; page-break-before: always !important; }
+            .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
+            canvas { max-width: 100% !important; height: auto !important; page-break-inside: avoid !important; }
+            table { page-break-inside: auto !important; }
+            tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+            h1, h2, h3, h4, h5, h6 { page-break-after: avoid !important; break-after: avoid-page !important; page-break-inside: avoid !important; }
+            p, li { orphans: 3; widows: 3; }
+        }
+        .abstract-bg { background-color: #f8fafc; border-left: 4px solid #1e3a8a; }
+        .hanging-indent { padding-left: 2em; text-indent: -2em; margin-bottom: 1em; }
+        .ba-chart-container { position: relative; width: 100%; height: 340px; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased font-sans">
+
+    <nav class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="font-semibold text-gray-900">Clinical Surveillance Unit, CaPRiSK, MoH Malaysia</span>
+            </div>
+            <button onclick="window.print()" class="flex items-center space-x-2 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-md transition text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>Print to PDF</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto my-8 bg-white shadow-xl rounded-lg overflow-hidden container">
+        <div class="px-6 py-12 md:px-10 md:py-16">
+
+            <!-- Data Upload Panel -->
+            <div class="no-print bg-blue-50 border border-blue-200 p-6 rounded-lg mb-10 shadow-sm flex flex-col md:flex-row gap-8">
+                <div class="flex-1">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1">
+                            <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        </div>
+                        <div class="ml-4 w-full">
+                            <h3 class="text-base font-bold text-blue-900">1. Upload Validation Survey Data</h3>
+                            <p class="text-xs text-blue-800 mt-1 mb-4 text-justify">Upload your main dataset (e.g., n=165). Automatically updates Alpha, Spearman tables, regression plots, and dynamic text paragraphs. Required columns: psq18_dim1, mypsq_dim1 … psq18_dim7, mypsq_dim7 (14 columns).</p>
+                            <div class="flex flex-col sm:flex-row gap-3 items-center">
+                                <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
+                                <button onclick="downloadCSVTemplate()" class="w-full sm:w-auto px-3 py-2 bg-white border border-gray-300 rounded shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap transition">Template</button>
+                            </div>
+                            <p id="uploadStatus" class="text-xs font-semibold mt-2 text-emerald-600 hidden">✓ Validation data updated.</p>
+                            <p id="uploadError" class="text-xs font-semibold mt-2 text-red-600 hidden">✗ Error: Invalid format. Check CSV has 14 numeric columns.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:block w-px bg-blue-200"></div>
+                <div class="flex-1">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1">
+                            <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        </div>
+                        <div class="ml-4 w-full">
+                            <h3 class="text-base font-bold text-blue-900">2. Upload CVI Translation Data</h3>
+                            <p class="text-xs text-blue-800 mt-1 mb-4 text-justify">Upload your 42-item Expert Review data (1–4 Likert scale, 3 raters) to update the Phase III CVI metrics table. Columns: Language, Item_ID, Expert_1, Expert_2, Expert_3.</p>
+                            <div class="flex flex-col sm:flex-row gap-3 items-center">
+                                <input type="file" id="cviFileInput" accept=".csv" class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer"/>
+                                <button onclick="downloadCVITemplate()" class="w-full sm:w-auto px-3 py-2 bg-white border border-gray-300 rounded shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap transition">Template</button>
+                            </div>
+                            <p id="cviUploadStatus" class="text-xs font-semibold mt-2 text-emerald-600 hidden">✓ CVI data updated.</p>
+                            <p id="cviUploadError" class="text-xs font-semibold mt-2 text-red-600 hidden">✗ Error: Invalid CVI format.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <header class="mb-10 text-center">
+                <p class="text-sm font-semibold text-secondary uppercase tracking-wider mb-2">Original Research Article</p>
+                <h1 class="text-3xl md:text-4xl font-serif font-bold text-gray-900 leading-tight mb-6">
+                    Development and Technical Validation of the Malaysia Patient Satisfaction Questionnaire (MyPSQ): Overcoming Systematic Error in the PSQ-18
+                </h1>
+                <div class="flex flex-col items-center justify-center space-y-2 mt-4">
+                    <p class="text-lg font-bold text-gray-900">Abu Bakar AM, Mohd Anuar E, Khalid KH, Sallehuddin MF, Adnan AS,</p>
+                    <p class="text-lg font-bold text-gray-900">Mahabot FR, Mohamad AH, Sharif S, Mohd Noor N, Aziz N.</p>
+                    <p class="text-md font-medium text-gray-800">Clinical Surveillance Unit, Risk Management and Clinical Surveillance Section</p>
+                    <p class="text-sm text-gray-500">Medical Development Division, Ministry of Health Malaysia (KKM), Putrajaya, Malaysia</p>
+                </div>
+            </header>
+
+            <!-- Abstract -->
+            <section class="abstract-bg p-6 rounded-r-lg mb-10 print-break-inside-avoid">
+                <h2 class="text-xl font-bold font-serif text-primary mb-3">Abstract</h2>
+                <p class="text-gray-700 leading-relaxed font-serif text-sm text-justify">
+                    <strong>Background:</strong> Patient satisfaction is a core indicator of healthcare quality. While the Ministry of Health (MoH) Malaysia adopted the Short-Form Patient Satisfaction Questionnaire (PSQ-18) in 2023, a subsequent data analysis (N=275,404) revealed critical practical vulnerabilities. High rates of measurement error were driven by cognitive misalignment arising from reverse scoring and negatively phrased items, alongside respondent burden. To address these limitations, we developed the MyPSQ—a streamlined, direct-approach 7-item instrument.
+                    <br><br>
+                    <strong>Methods:</strong> A rigorous three-phase development framework was employed: Phase I (Item Refinement), Phase II (Psychometric Validation), and Phase III (Linguistic and Cultural Adaptation via Content Validity Indexing across five regional languages). For Phase II concurrent validation, an online questionnaire was administered to healthcare respondents (n = <span class="dyn_alpha_n font-semibold">...</span>). Given the ordinal nature of Likert-scale response data, non-parametric Spearman's rank-order correlation (&rho;) and Bland–Altman analysis were utilized to assess structural equivalence and absolute agreement against the PSQ-18.
+                    <br><br>
+                    <strong>Results:</strong> Internal consistency analysis demonstrated a high overall inter-item Cronbach's &alpha; = <span class="dyn_alpha font-semibold">...</span>, consistent with a strong higher-order satisfaction construct. Spearman correlation analysis revealed significant positive associations across all seven domain pairs (all p &lt; .001), with coefficients ranging from <span id="abs_min_rho" class="font-semibold">...</span> to <span id="abs_max_rho" class="font-semibold">...</span>, preserving construct coverage despite item reduction. Bland–Altman analysis confirmed acceptable absolute agreement with no statistically significant proportional bias.
+                    <br><br>
+                    <strong>Conclusion:</strong> The MyPSQ is a psychometrically sound and operationally efficient alternative to the PSQ-18. By re-engineering the instrument around direct-response items, it eliminates the systematic cognitive errors inherent in the PSQ-18 while maintaining domain-level fidelity, making it suitable for scalable national healthcare surveillance.
+                </p>
+            </section>
+
+            <hr class="border-gray-200 mb-10">
+
+            <div class="prose prose-lg max-w-none text-gray-800 font-serif leading-relaxed text-justify">
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">1. Introduction</h2>
+                <p class="mb-4">
+                    Within Hospital and Special Medical Institution, Ministry of Health Malaysia, patient experience monitoring has evolved from legacy service quality frameworks towards digitally administered standardized instruments. The Patient Satisfaction Questionnaire-18 (PSQ-18; Marshall &amp; Hays, 1994), derived from the original 68-item Patient Satisfaction Questionnaire (Ware et al., 1976), was formally adopted as the Medical Development Division digital patient satisfaction tool in 2023. While the PSQ-18 provides a globally validated psychometric foundation, a 2025 operational big data analysis encompassing 275,404 respondents exposed critical practical limitations in real-time digital deployment contexts. Performance metrics identified specific vulnerabilities in dimensions including "Time Spent with Officers" (77.49%) and "Access and Convenience" (77.68%). However, subsequent evaluation suggested these figures were substantially confounded by instrument-related measurement error rather than genuine clinical deficits (Abu Bakar et al., 2025, internal technical report).
+                </p>
+                <p class="mb-4">
+                    The same report (Abu Bakar et al., 2025) identified that 66.7% of respondents reported cognitive difficulty with reverse-scored items, while 59.8% cited survey fatigue as a barrier to completion. The technical precision of the PSQ-18 is structurally compromised by negatively phrased items (e.g., <i>"Doktor merawat saya dengan terburu-buru"</i>) paired with an inverse Likert scale in which '1' represents "Sangat Setuju" (Strongly Agree). This design creates a systematic cognitive misalignment that undermines data integrity across diverse patient demographics.
+                </p>
+                <p class="mb-6">
+                    The rationale for reducing instrument dimensionality to mitigate respondent burden is supported by regional academic precedents. Notably, Imaninda and Azwar (2018) successfully adapted the PSQ-18 into a psychometrically robust 10-item Indonesian instrument (KKP-2017; &alpha; = 0.883), demonstrating that construct integrity can be preserved through rigorous item reduction. Building upon this rationale, the objective of the present study was to develop and validate the MyPSQ—a 7-item, direct-approach, multilingual instrument. Rather than positioning the MyPSQ as a dimensionally identical equivalent to the PSQ-18, this study sought to demonstrate that it constitutes a structurally superior instrument that preserves construct alignment at the domain level while eliminating the systematic measurement error endemic to the current implementation.
+                </p>
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">2. Methods</h2>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-6 mb-3">2.1 Study Design Framework</h3>
+                <p class="mb-4">The validation protocol was structured across three sequential development phases to ensure comprehensive psychometric integrity:</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li class="mb-2"><strong>Phase I (Item Refinement):</strong> Expert-driven content development focusing on direct-response re-engineering of 7 core items to eliminate double-barrelled and negatively phrased questions.</li>
+                    <li class="mb-2"><strong>Phase II (Psychometric Validation):</strong> Cross-sectional concurrent validity testing between the MyPSQ and the Malay-language PSQ-18 (Hussin, 2016).</li>
+                    <li class="mb-2"><strong>Phase III (Linguistic and Cultural Adaptation):</strong> Cross-cultural adaptation for the Malaysian multilingual context (English, Mandarin, Tamil, Iban, Kadazan) utilizing bilingual expert panels and Content Validity Indexing (Lynn, 1986; Polit &amp; Beck, 2006).</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-6 mb-3">2.2 Participants and Sampling</h3>
+                <p class="mb-4">
+                    Data for Phase II were collected via an online questionnaire hosted on the CaPRiSK portal (Medical Development Division, Ministry of Health Malaysia). Sample size requirements were determined by the most stringent of three concurrent psychometric objectives. For internal consistency estimation, a minimum of 150–300 participants is recommended to obtain stable Cronbach's alpha estimates (Bonett, 2002). For concurrent validity, given the ordinal data structure and anticipated moderate-to-strong Spearman correlations (&rho; = 0.4–0.7 based on the Imaninda &amp; Azwar, 2018 precedent), power analysis following Zar (1999) indicated that approximately 85–150 participants are required to achieve 80% statistical power (two-tailed &alpha; = .05).
+                    Cohen (1988) was retained for the Bland–Altman sample size rationale (minimum 100–200 observations), which does not depend on the correlation metric.
+                </p>
+                <p class="mb-4">
+                    To satisfy all constraints simultaneously across the 7-domain structure, a minimum of 150 participants was established. Accounting for an anticipated 10% rate of incomplete or invalid responses, a recruitment target of approximately 165 participants was set. The analytics presented in this study reflect the cohort of <span id="textSampleSize" class="font-bold bg-yellow-100 px-1">n = ...</span> respondents.
+                </p>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-6 mb-3">2.3 Statistical Analysis</h3>
+                <p class="mb-6">
+                    Because both instruments employ 5-point Likert scales yielding ordinal response data, non-parametric <strong>Spearman's rank-order correlation (&rho;)</strong> was used to assess monotonic concurrent validity between corresponding domains (Jamieson, 2004). Strength of association was interpreted using the classification framework proposed by Schober, Boer, and Schwarte (2018), which is calibrated for clinical measurement contexts: negligible (&rho; &lt; .10), weak (.10–.39), moderate (.40–.69), strong (.70–.89), and very strong (&ge; .90).
+                    Internal consistency was quantified using Cronbach's alpha alongside a 95% confidence interval computed via the method of Feldt, Woodruff, and Salih (1987), which uses an F-distribution and is appropriate for fixed-k scales such as the 7-item MyPSQ.
+                    Bland–Altman analysis was conducted on normalized global scores to assess absolute agreement, reporting mean difference (bias), limits of agreement (LoA; ±1.96 SD), and proportional bias via regression of differences on means (Bland &amp; Altman, 1986).
+                </p>
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">3. Results</h2>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-6 mb-3">3.1 Reliability and Structural Considerations</h3>
+                <p class="mb-4">
+                    The MyPSQ demonstrated a Cronbach's alpha of <span class="dyn_alpha font-bold bg-yellow-100 px-1">...</span> (95% CI: <span id="dyn_alpha_ci">...</span>), estimated via the Feldt et al. (1987) F-distribution method. Given that the instrument comprises seven conceptually distinct domains each represented by a single item, this coefficient is interpreted as reflecting strong inter-item correlation consistent with an overarching higher-order patient satisfaction construct, rather than redundancy within a unidimensional scale.
+                </p>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-6 mb-3">3.2 Concurrent Validity</h3>
+                <p class="mb-4">
+                    Spearman's rank-order correlation analysis revealed statistically significant positive associations between all corresponding domain pairs of the MyPSQ and PSQ-18 (all p &lt; .001). Correlation coefficients ranged from <span id="dyn_min_rho" class="font-semibold">...</span> to <span id="dyn_max_rho" class="font-semibold">...</span>, indicating moderate-to-strong monotonic relationships across domains (Schober et al., 2018).
+                </p>
+                <p class="mb-4">
+                    Domain-specific correlations were as follows: General Satisfaction (&rho; = <span id="dyn_rho_0">...</span>), Technical Quality (&rho; = <span id="dyn_rho_1">...</span>), Interpersonal Manner (&rho; = <span id="dyn_rho_2">...</span>), Communication (&rho; = <span id="dyn_rho_3">...</span>), Financial Aspects (&rho; = <span id="dyn_rho_4">...</span>), Time Spent (&rho; = <span id="dyn_rho_5">...</span>), and Access &amp; Facilities (&rho; = <span id="dyn_rho_6">...</span>). These findings indicate that despite substantial item reduction, the MyPSQ retains meaningful alignment with the conceptual domains measured by the PSQ-18.
+                </p>
+
+                <!-- Correlation Table -->
+                <div class="overflow-x-auto my-8 print-break-inside-avoid">
+                    <table class="min-w-full bg-white border border-gray-300 shadow-sm rounded-lg text-sm font-sans">
+                        <caption class="caption-top text-left font-semibold text-gray-700 mb-2">Table 1. Spearman Correlation Analysis between MyPSQ and PSQ-18 Domains (<span id="tableN">n=...</span>)</caption>
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-4 border-b border-gray-300 text-left font-semibold text-gray-700">Dimension</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">Spearman (&rho;)</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">Sig. (p)</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-left font-semibold text-gray-700">Interpretation <span class="font-normal text-gray-400">(Schober et al., 2018)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="correlationTableBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+
+                <!-- Scatter Plots -->
+                <div class="my-8 flex flex-col gap-8">
+                    <h4 class="text-center font-sans font-semibold text-gray-800 mb-2">Figure 1. Scatter Plots of the 7 Dimensions with OLS Trend Line and 95% Prediction Intervals</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">1. General Satisfaction</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim0"></canvas></div></div>
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">2. Technical Quality</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim1"></canvas></div></div>
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">3. Interpersonal Manner</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim2"></canvas></div></div>
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">4. Communication</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim3"></canvas></div></div>
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">5. Financial Aspects</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim4"></canvas></div></div>
+                        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid"><h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">6. Time Spent</h5><div style="height: 250px; width: 100%;"><canvas id="scatterDim5"></canvas></div></div>
+                    </div>
+                    <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid w-full md:w-1/2 mx-auto">
+                        <h5 class="text-sm font-sans font-semibold text-gray-700 mb-1 text-center">7. Access &amp; Facilities</h5>
+                        <div style="height: 250px; width: 100%;"><canvas id="scatterDim6"></canvas></div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-8 mb-3 print-page-break-before">3.3 Agreement Analysis (Bland–Altman)</h3>
+                <p class="mb-6">
+                    Bland–Altman analysis was conducted on normalized global scores derived from both instruments. The mean difference (bias) was <span id="dyn_ba_mean" class="font-bold">...</span> (95% limits of agreement: <span id="dyn_ba_lower" class="font-bold">...</span> to <span id="dyn_ba_upper" class="font-bold">...</span>), indicating minimal systematic over- or underestimation between MyPSQ and PSQ-18 global scores.
+                </p>
+                <p class="mb-6">
+                    Visual inspection of the Bland–Altman plot confirmed that the majority of observations (<span id="dyn_ba_percent" class="font-bold">...</span>%) fell within the limits of agreement, consistent with acceptable interchangeability at the aggregate level. Linear regression of the differences on the means yielded no statistically significant proportional bias (slope p = <span id="dyn_ba_p" class="font-bold">...</span>), indicating that the magnitude of discrepancy between instruments did not systematically vary with the level of patient satisfaction. The horizontal alignment of the trend line in Figure 2 visually supports this finding.
+                </p>
+
+                <div class="my-8 bg-white p-4 border border-gray-200 rounded-lg shadow-sm print-break-inside-avoid">
+                    <h4 class="text-center font-sans font-semibold text-gray-800 mb-2">Figure 2. Bland–Altman Plot for Global Score Absolute Agreement</h4>
+                    <div class="ba-chart-container">
+                        <canvas id="blandAltmanPlot"></canvas>
+                    </div>
+                </div>
+
+                <!-- Phase III CVI -->
+                <h3 class="text-xl font-semibold text-gray-800 font-sans mt-8 mb-3 print-page-break-before">3.4 Phase III: Content Validity Index (CVI) Analysis</h3>
+                <p class="mb-4">
+                    To evaluate the linguistic and conceptual equivalence of translated items across diverse Malaysian demographics, a Content Validity Index (CVI) approach was planned to be  employed following established guidelines (Lynn, 1986; Polit &amp; Beck, 2006). We are planning to have  bilingual expert  review panel (n = 3 experts per language) to evaluated all 42 items of the translation drafts across five target languages: English, Mandarin, Tamil, Iban, and Kadazan. Currently, we only manage to do a complete CVI for English, Mandarin dan Tamil, however, we are still getting the experts for Iban and Kadazan language. The next phase of this study will conclude 
+                    Phase 3 and repeat CVI process as needed for translations that requires revision.  
+                </p>
+                <p class="mb-6" hidden>
+                    Experts rated each item on a 4-point scale for Conceptual Equivalence. Items rated 3 or 4 by a rater were classified as relevant; Item-level CVI (I-CVI) was computed as the proportion of raters rating the item as relevant. Given the small panel size per language (n = 3), the criterion for immediate acceptance without revision was set at I-CVI = 1.00 (i.e., unanimous consensus), consistent with the recommendation of Polit and Beck (2006). Based on the current expert data matrix, the mean Scale-Level Content Validity Index (S-CVI/Ave) across all five languages was <strong><span id="dyn_scvi">...</span></strong>, with an average Universal Agreement (S-CVI/UA) of <strong><span id="dyn_scvi_ua">...</span>%</strong>. Across all language translations, a total of <strong><span id="dyn_cvi_fail">...</span></strong> item occurrences fell below the 1.00 threshold (I-CVI &le; 0.67) and were flagged for targeted linguistic revision. Detailed linguistic performance is summarized in Table 2.
+                </p>
+
+                <div class="overflow-x-auto my-8 print-break-inside-avoid" hidden>
+                    <table class="min-w-full bg-white border border-gray-300 shadow-sm rounded-lg text-sm font-sans">
+                        <caption class="caption-top text-left font-semibold text-gray-700 mb-2">Table 2. Summary of Phase III Bilingual Expert Content Validity by Language</caption>
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-4 border-b border-gray-300 text-left font-semibold text-gray-700">Target Language</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">Experts (n)</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">Items Evaluated</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">Requires Revision (I-CVI &lt; 1.00)</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">S-CVI/UA (%)</th>
+                                <th class="py-3 px-4 border-b border-gray-300 text-center font-semibold text-gray-700">S-CVI/Ave</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cviTableBody" class="divide-y divide-gray-200">
+                            <!-- Dynamic Rows Injected Here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">4. Discussion</h2>
+                <p class="mb-4">
+                    This study demonstrates that the MyPSQ provides a psychometrically sound alternative to the PSQ-18 for population-level patient satisfaction surveillance within the Malaysian healthcare system. The strong Cronbach's alpha observed should be interpreted with caution in the context of a multidimensional instrument: rather than indicating item redundancy, this value reflects the influence of a strong higher-order satisfaction construct that co-varies across all seven domains simultaneously—a finding consistent with the theoretical structure of global service quality models.
+                </p>
+                <p class="mb-4">
+                    The observed moderate correlation in the Financial Aspects domain is contextually interpretable. The heavily subsidized nature of Malaysian public healthcare (Institute for Public Health, 2024) produces an expected ceiling effect for financial satisfaction items, limiting score variance and thereby attenuating the observed correlation coefficient. This dimensional sensitivity may warrant contextual recalibration in future instrument iterations.
+                </p>
+                <p class="mb-8">
+                    The Bland–Altman analysis supports the practical utility of the MyPSQ as an aggregate-level surveillance tool. The absence of proportional bias across the range of satisfaction scores indicates that instrument discrepancies are consistent and do not systematically inflate or deflate scores for either highly satisfied or dissatisfied patients—a property essential for fair population-level benchmarking.
+                </p>
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">5. Conclusion</h2>
+                <p class="mb-8">
+                    The MyPSQ represents a valid, reliable, and operationally efficient structural alternative to the PSQ-18. By substantially reducing respondent burden while maintaining robust domain-level construct fidelity, the instrument is well suited for real-time national healthcare surveillance systems. Its direct-response design eliminates the cognitive error associated with reverse-scored and negatively phrased items, enhancing data quality and usability across diverse patient populations, and ultimately supporting more accurate and inclusive patient experience measurement within the Ministry of Health Malaysia.
+                </p>
+
+                <hr class="border-gray-200 mb-8">
+
+                <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">References</h2>
+                <ol class="list-decimal pl-6 space-y-3 text-sm text-gray-700 font-sans print-break-inside-avoid">
+                    <li>Abu Bakar, A. M., Mohd Anuar, E., Khalid, K. H., Sallehuddin, M. F., Adnan, A. S., Mahabot, F. R., Mohamad, A. H., Sharif, S., Mohd Noor, N., &amp; Aziz, N. (2025). <em>Internal Technical Report on Implementation and Operational Issues of PSQ-18 in MoH Hospital / Special Medical Institution</em> [Unpublished internal technical report]. Clinical Surveillance Unit, Ministry of Health Malaysia.</li>
+                    <li>Institute for Public Health. (2024). <em>National Health and Morbidity Survey (NHMS) 2023: Non-communicable diseases and healthcare demand—Key findings</em>. National Institutes of Health, Ministry of Health Malaysia. https://www.nih.gov.my/</li>
+                    <li>Schober, P., Boer, C., &amp; Schwarte, L. A. (2018). Correlation coefficients: Appropriate use and interpretation. <em>Anesthesia &amp; Analgesia, 126</em>(5), 1763–1768. https://doi.org/10.1213/ANE.0000000000002864</li>
+                    <li>Hussin, D. A. (2016). <em>Development and evaluation of optometrist-led referral pathways in Ampang, Malaysia</em> [Doctoral dissertation, Queensland University of Technology]. QUT ePrints. https://eprints.qut.edu.au/</li>
+                    <li>Imaninda, V., &amp; Azwar, S. (2018). Modifikasi Patient Satisfaction Questionnaire Short Form (PSQ-18) ke dalam Bahasa Indonesia. <em>Gadjah Mada Journal of Psychology, 1</em>(1), 8–21. https://doi.org/10.22146/gamajop.31864</li>
+                    <li>Polit, D. F., &amp; Beck, C. T. (2006). The content validity index: Are you sure you know what's being reported? Critique and recommendations. <em>Research in Nursing &amp; Health, 29</em>(5), 489–497. https://doi.org/10.1002/nur.20147</li>
+                    <li>Jamieson, S. (2004). Likert scales: how to (ab)use them. <em>Medical Education, 38</em>(12), 1217–1218. https://doi.org/10.1111/j.1365-2929.2004.02012.x</li>
+                    <li>Bonett, D. G. (2002). Sample size requirements for testing and estimating coefficient alpha. <em>Journal of Educational and Behavioral Statistics, 25</em>(4), 335–340. https://doi.org/10.3102/10769986027004335</li>
+                    <li>Zar, J. H. (1999). <em>Biostatistical analysis</em> (4th ed.). Prentice Hall.</li>
+                    <li>Evans, J. D. (1996). <em>Straightforward statistics for the behavioral sciences</em>. Brooks/Cole Publishing.</li>
+                    <li>Marshall, G. N., &amp; Hays, R. D. (1994). <em>The Patient Satisfaction Questionnaire Short-Form (PSQ-18)</em>. RAND Corporation. https://www.rand.org/content/dam/rand/pubs/papers/2006/P7865.pdf</li>
+                    <li>Cohen, J. (1988). <em>Statistical power analysis for the behavioral sciences</em> (2nd ed.). Lawrence Erlbaum Associates.</li>
+                    <li>Feldt, L. S., Woodruff, D. J., &amp; Salih, F. A. (1987). Statistical inference for coefficient alpha. <em>Applied Psychological Measurement, 11</em>(1), 93–103. https://doi.org/10.1177/014662168701100107</li>
+                    <li>Bland, J. M., &amp; Altman, D. G. (1986). Statistical methods for assessing agreement between two methods of clinical measurement. <em>The Lancet, 327</em>(8476), 307–310. https://doi.org/10.1016/S0140-6736(86)90837-8</li>
+                    <li>Lynn, M. R. (1986). Determination and quantification of content validity. <em>Nursing Research, 35</em>(6), 382–385. https://doi.org/10.1097/00006199-198611000-00017</li>
+                    <li>Ware, J. E., Snyder, M. K., &amp; Wright, W. R. (1976). <em>Development and validation of scales to measure patient satisfaction with health care services: Volume I of a final report</em>. National Technical Information Service.</li>
+                </ol>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let chartInstances = {};
+
+        const dimensions = [
+            { id: 'scatterDim0', name: "General Satisfaction",  color: 'rgba(59,130,246,0.6)',  border: 'rgba(30,58,138,0.8)' },
+            { id: 'scatterDim1', name: "Technical Quality",     color: 'rgba(239,68,68,0.6)',   border: 'rgba(153,27,27,0.8)' },
+            { id: 'scatterDim2', name: "Interpersonal Manner",  color: 'rgba(16,185,129,0.6)',  border: 'rgba(6,78,59,0.8)' },
+            { id: 'scatterDim3', name: "Communication",         color: 'rgba(139,92,246,0.6)',  border: 'rgba(76,29,149,0.8)' },
+            { id: 'scatterDim4', name: "Financial Aspects",     color: 'rgba(245,158,11,0.6)',  border: 'rgba(146,64,14,0.8)' },
+            { id: 'scatterDim5', name: "Time Spent",            color: 'rgba(236,72,153,0.6)',  border: 'rgba(157,23,77,0.8)' },
+            { id: 'scatterDim6', name: "Access & Facilities",   color: 'rgba(14,165,233,0.6)',  border: 'rgba(7,89,133,0.8)' }
+        ];
+
+        function seededRandom(seed) {
+            let x = Math.sin(seed + 1) * 10000;
+            return x - Math.floor(x);
+        }
+
+let currentScatterData = [
+    [{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":4,"y":3},{"x":3,"y":4},{"x":3,"y":2},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":2,"y":3},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3,"y":4},{"x":2.5,"y":2},{"x":4,"y":5},{"x":4.5,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":3},{"x":5,"y":5},{"x":3.5,"y":3},{"x":4,"y":5},{"x":4.5,"y":4},{"x":2,"y":2},{"x":4.5,"y":5},{"x":4,"y":5},{"x":4,"y":4},{"x":3,"y":3},{"x":4,"y":4},{"x":4.5,"y":5},{"x":5,"y":4},{"x":3.5,"y":3},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":3},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":3},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":3},{"x":3,"y":3},{"x":3,"y":4},{"x":4.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":5},{"x":3.5,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":3,"y":2},{"x":4,"y":5},{"x":3.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":3},{"x":4.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":2,"y":2},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":2.5,"y":3},{"x":4.5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}],
+    [{"x":4.5,"y":5},{"x":3.25,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3.25,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3,"y":3},{"x":4.75,"y":5},{"x":3.75,"y":5},{"x":4.75,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":3},{"x":3.75,"y":4},{"x":3.75,"y":5},{"x":3,"y":2},{"x":1.75,"y":2},{"x":4.25,"y":5},{"x":4.25,"y":5},{"x":4.75,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":3.5,"y":4},{"x":3.25,"y":3},{"x":3.75,"y":3},{"x":4.5,"y":5},{"x":2.75,"y":3},{"x":3.75,"y":5},{"x":4.25,"y":4},{"x":2.25,"y":3},{"x":3.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.25,"y":3},{"x":4,"y":4},{"x":4.75,"y":5},{"x":4.5,"y":4},{"x":3,"y":3},{"x":5,"y":5},{"x":4.75,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":3.25,"y":4},{"x":4,"y":4},{"x":3.75,"y":4},{"x":3.5,"y":4},{"x":4.75,"y":5},{"x":3.75,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4.25,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3.25,"y":5},{"x":3.25,"y":4},{"x":3.75,"y":4},{"x":4.5,"y":5},{"x":4,"y":3},{"x":3.5,"y":4},{"x":3.25,"y":3},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":3.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":5},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.75,"y":4},{"x":4,"y":4},{"x":3.75,"y":4},{"x":3.75,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":2.75,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":3.25,"y":3},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4.75,"y":5},{"x":4,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":5},{"x":3.5,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":3.5,"y":3},{"x":3.75,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.75,"y":4},{"x":3.25,"y":4},{"x":3.5,"y":4},{"x":3.75,"y":5},{"x":4.5,"y":5},{"x":3,"y":2},{"x":3.75,"y":5},{"x":3.25,"y":2},{"x":3.75,"y":4},{"x":4,"y":4},{"x":3.75,"y":5},{"x":3.25,"y":3},{"x":4.75,"y":5},{"x":4.75,"y":5},{"x":5,"y":5},{"x":3.75,"y":4},{"x":4.25,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":4.25,"y":5},{"x":4,"y":4},{"x":3.75,"y":4},{"x":4.25,"y":4},{"x":3.5,"y":5},{"x":3.75,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":4.75,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.25,"y":5},{"x":4.25,"y":4},{"x":4.25,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4.75,"y":5},{"x":4.75,"y":5},{"x":5,"y":5}],
+    [{"x":4.5,"y":5},{"x":3,"y":4},{"x":4,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":3},{"x":4,"y":3},{"x":4.5,"y":5},{"x":4,"y":4},{"x":5,"y":4},{"x":4,"y":5},{"x":4.5,"y":5},{"x":4,"y":3},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":2,"y":3},{"x":4.5,"y":5},{"x":4.5,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":5,"y":5},{"x":3,"y":3},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":3,"y":3},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3.5,"y":3},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":5},{"x":4.5,"y":4},{"x":5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":3,"y":4},{"x":5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":3},{"x":5,"y":5},{"x":3,"y":4},{"x":5,"y":5},{"x":4.5,"y":4},{"x":3.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3.5,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4,"y":3},{"x":5,"y":5},{"x":2.5,"y":2},{"x":3.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":3.5,"y":3},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}],
+    [{"x":4.5,"y":5},{"x":3,"y":3},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":3},{"x":3,"y":3},{"x":5,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3,"y":3},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":2},{"x":4.5,"y":5},{"x":4,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4.5,"y":3},{"x":5,"y":5},{"x":3.5,"y":3},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":2},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.5,"y":3},{"x":4,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":5},{"x":4,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":3,"y":4},{"x":3.5,"y":3},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3.5,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":3},{"x":4,"y":5},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3.5,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3,"y":3},{"x":4.5,"y":5},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}],
+    [{"x":5,"y":5},{"x":3,"y":4},{"x":5,"y":5},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":4,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4.5,"y":5},{"x":4,"y":3},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":5,"y":4},{"x":4.5,"y":5},{"x":4,"y":5},{"x":4.5,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":5,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":3},{"x":5,"y":5},{"x":4,"y":3},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":4},{"x":3.5,"y":3},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":4},{"x":3,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":3},{"x":5,"y":5},{"x":4,"y":5},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":3},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":5,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":4},{"x":3,"y":4},{"x":3.5,"y":3},{"x":5,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":5},{"x":5,"y":4},{"x":4,"y":4},{"x":3.5,"y":5},{"x":4,"y":3},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":5,"y":4},{"x":4,"y":4},{"x":3.5,"y":3},{"x":4.5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":3,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":4.5,"y":4},{"x":5,"y":5},{"x":4.5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":3},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":5,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":4},{"x":4.5,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}],
+    [{"x":4,"y":5},{"x":2,"y":2},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":2.5,"y":4},{"x":3.5,"y":4},{"x":3,"y":2},{"x":3.5,"y":3},{"x":4.5,"y":5},{"x":3.5,"y":3},{"x":2.5,"y":4},{"x":3,"y":4},{"x":4,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":3,"y":2},{"x":2,"y":2},{"x":4.5,"y":5},{"x":4,"y":5},{"x":4.5,"y":5},{"x":4,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":2.5,"y":3},{"x":3.5,"y":5},{"x":4,"y":4},{"x":2,"y":2},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3,"y":2},{"x":3,"y":3},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":5},{"x":5,"y":5},{"x":3.5,"y":5},{"x":4,"y":4},{"x":4,"y":5},{"x":3.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":4,"y":5},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3.5,"y":3},{"x":5,"y":5},{"x":2.5,"y":4},{"x":4.5,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":2.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":3.5,"y":5},{"x":4,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":2.5,"y":4},{"x":3.5,"y":5},{"x":3,"y":3},{"x":4,"y":4},{"x":4,"y":4},{"x":5,"y":4},{"x":4,"y":4},{"x":3,"y":2},{"x":4,"y":5},{"x":4,"y":4},{"x":5,"y":5},{"x":3.5,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4.5,"y":5},{"x":3.5,"y":5},{"x":3,"y":4},{"x":2.5,"y":4},{"x":3.5,"y":4},{"x":4.5,"y":5},{"x":4.5,"y":5},{"x":3,"y":3},{"x":4.5,"y":4},{"x":2.5,"y":2},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":5},{"x":2,"y":3},{"x":5,"y":4},{"x":4.5,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":4,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":5,"y":5},{"x":3.5,"y":5},{"x":3,"y":4},{"x":3.5,"y":3},{"x":4,"y":4},{"x":5,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}],
+    [{"x":4,"y":5},{"x":3.5,"y":3},{"x":4,"y":3},{"x":2.5,"y":3},{"x":4,"y":4},{"x":3.25,"y":2},{"x":2.5,"y":3},{"x":3,"y":2},{"x":2.5,"y":2},{"x":4.5,"y":5},{"x":2.75,"y":2},{"x":4,"y":4},{"x":3,"y":3},{"x":3,"y":4},{"x":3.25,"y":4},{"x":3.5,"y":4},{"x":4,"y":5},{"x":3.5,"y":5},{"x":2,"y":2},{"x":4.5,"y":5},{"x":3.5,"y":5},{"x":4,"y":5},{"x":3,"y":3},{"x":3.5,"y":4},{"x":4.5,"y":4},{"x":3.75,"y":4},{"x":3.25,"y":3},{"x":3.5,"y":3},{"x":4.5,"y":5},{"x":3.25,"y":3},{"x":3.5,"y":5},{"x":3.75,"y":4},{"x":2.5,"y":1},{"x":3.5,"y":4},{"x":4.25,"y":5},{"x":3.5,"y":2},{"x":3,"y":3},{"x":3.25,"y":4},{"x":4,"y":5},{"x":4.75,"y":4},{"x":2.75,"y":3},{"x":5,"y":5},{"x":4.75,"y":5},{"x":2.75,"y":4},{"x":5,"y":5},{"x":2.75,"y":3},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":4,"y":4},{"x":4.75,"y":5},{"x":4,"y":4},{"x":4.5,"y":5},{"x":4.75,"y":5},{"x":5,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.5,"y":5},{"x":4,"y":3},{"x":4,"y":3},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":3.75,"y":5},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":3.25,"y":4},{"x":2.75,"y":2},{"x":3.5,"y":4},{"x":3.5,"y":2},{"x":3.5,"y":4},{"x":3.25,"y":3},{"x":4.75,"y":5},{"x":3,"y":3},{"x":3.75,"y":4},{"x":4,"y":4},{"x":3.25,"y":4},{"x":4.75,"y":4},{"x":4.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":3,"y":4},{"x":3,"y":4},{"x":3.25,"y":4},{"x":3,"y":4},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":5,"y":5},{"x":3.5,"y":3},{"x":3.75,"y":3},{"x":4,"y":4},{"x":2.5,"y":3},{"x":3.5,"y":4},{"x":3.75,"y":4},{"x":3.75,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":3.5,"y":4},{"x":4.75,"y":4},{"x":3.5,"y":4},{"x":2,"y":2},{"x":4.5,"y":5},{"x":3.75,"y":4},{"x":5,"y":5},{"x":3.25,"y":4},{"x":2.75,"y":4},{"x":3.5,"y":4},{"x":4.25,"y":5},{"x":4,"y":4},{"x":3.75,"y":3},{"x":4,"y":5},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":4,"y":4},{"x":3.75,"y":5},{"x":3,"y":3},{"x":3.5,"y":4},{"x":3.75,"y":4},{"x":3.25,"y":4},{"x":3.75,"y":5},{"x":4.5,"y":4},{"x":3.25,"y":4},{"x":4.25,"y":4},{"x":3,"y":3},{"x":3.5,"y":4},{"x":3.5,"y":3},{"x":3.5,"y":4},{"x":3,"y":2},{"x":5,"y":4},{"x":4.75,"y":5},{"x":5,"y":5},{"x":3.5,"y":4},{"x":3.75,"y":4},{"x":3.5,"y":2},{"x":3.5,"y":4},{"x":2.25,"y":5},{"x":3.25,"y":4},{"x":2.75,"y":3},{"x":3.75,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":3.25,"y":3},{"x":3.25,"y":3},{"x":3.75,"y":4},{"x":4,"y":5},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":4,"y":5},{"x":4.25,"y":4},{"x":4,"y":4},{"x":4,"y":4},{"x":3.5,"y":4},{"x":4,"y":4},{"x":3.75,"y":4},{"x":5,"y":5},{"x":5,"y":5},{"x":5,"y":5}]
+];
+        // --- CVI Dummy Data for 5 Languages ---
+        let currentCviData = [];
+        const langs = ['English', 'Mandarin', 'Tamil', 'Iban', 'Kadazan'];
+        const langFails = {
+            'English': [5],
+            'Mandarin': [12, 18, 30],
+            'Tamil': [8, 22],
+            'Iban': [3, 14, 27, 40],
+            'Kadazan': [19, 35]
+        };
+
+        langs.forEach(lang => {
+            let fails = langFails[lang];
+            for (let i = 1; i <= 42; i++) {
+                if (fails.includes(i)) {
+                    currentCviData.push({ lang: lang, item: "Q" + i, r1: 4, r2: 2, r3: 2 });
+                } else {
+                    currentCviData.push({ lang: lang, item: "Q" + i, r1: 4, r2: 4, r3: 3 });
+                }
+            }
+        });
+
+        // --- STATISTICS ---
+
+        function calculateCronbachAlpha(allDimsData) {
+            let k = allDimsData.length;
+            let n = allDimsData[0].length;
+            if (n < 2 || k < 2) return 0;
+            let itemVariances = 0;
+            let totalScores = new Array(n).fill(0);
+            for (let i = 0; i < k; i++) {
+                let sum = 0;
+                for (let j = 0; j < n; j++) { sum += allDimsData[i][j].y; totalScores[j] += allDimsData[i][j].y; }
+                let mean = sum / n;
+                let ssq = 0;
+                for (let j = 0; j < n; j++) ssq += Math.pow(allDimsData[i][j].y - mean, 2);
+                itemVariances += ssq / (n - 1);
+            }
+            let totalMean = totalScores.reduce((a, b) => a + b, 0) / n;
+            let totalVar = totalScores.reduce((a, v) => a + Math.pow(v - totalMean, 2), 0) / (n - 1);
+            if (totalVar === 0) return 0;
+            return (k / (k - 1)) * (1 - itemVariances / totalVar);
+        }
+
+        function calculateAlphaCI_Feldt(alpha, k, n) {
+            if (n < 3 || alpha >= 1) return { lower: 0, upper: 1 };
+            let F_crit_upper = 1.25;
+            let F_crit_lower = 1 / 1.25;
+            let lower = 1 - (1 - alpha) * F_crit_upper;
+            let upper = 1 - (1 - alpha) * F_crit_lower;
+            return {
+                lower: Math.max(0, lower).toFixed(3),
+                upper: Math.min(1, upper).toFixed(3)
+            };
+        }
+
+        function getRanks(arr) {
+            let sorted = arr.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+            let ranks = new Array(arr.length);
+            let i = 0;
+            while (i < sorted.length) {
+                let j = i;
+                while (j < sorted.length && sorted[j].v === sorted[i].v) j++;
+                let rank = (i + 1 + j) / 2;
+                for (let k = i; k < j; k++) ranks[sorted[k].i] = rank;
+                i = j;
+            }
+            return ranks;
+        }
+
+        function calculateSpearman(data) {
+            let n = data.length;
+            if (n === 0) return 0;
+            let rankX = getRanks(data.map(p => p.x));
+            let rankY = getRanks(data.map(p => p.y));
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+            for (let i = 0; i < n; i++) {
+                sumX += rankX[i]; sumY += rankY[i];
+                sumXY += rankX[i] * rankY[i]; sumX2 += rankX[i] ** 2; sumY2 += rankY[i] ** 2;
+            }
+            let num = n * sumXY - sumX * sumY;
+            let den = Math.sqrt((n * sumX2 - sumX ** 2) * (n * sumY2 - sumY ** 2));
+            return den === 0 ? 0 : num / den;
+        }
+
+        function tDistPValue(t, df) {
+            let x = df / (df + t * t);
+            let a = df / 2, b = 0.5;
+            let lbeta = lgamma(a) + lgamma(b) - lgamma(a + b);
+            function lgamma(z) {
+                let g = 7;
+                let c = [0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+                if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+                z--;
+                let x = c[0];
+                for (let i = 1; i < g + 2; i++) x += c[i] / (z + i);
+                let t2 = z + g + 0.5;
+                return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t2) - t2 + Math.log(x);
+            }
+            if (df > 30) {
+                let z = Math.abs(t);
+                let p = Math.exp(-0.717 * z - 0.416 * z * z);
+                return Math.min(1, 2 * p);
+            }
+            let betaInc = 0.5 * Math.exp(a * Math.log(x) + b * Math.log(1 - x) - lbeta);
+            return Math.min(1, 2 * betaInc);
+        }
+
+        function calculateSpearmanP(rho, n) {
+            if (n <= 2 || Math.abs(rho) === 1) return 0;
+            let t = Math.abs(rho) * Math.sqrt((n - 2) / (1 - rho * rho));
+            return tDistPValue(t, n - 2);
+        }
+
+        function calculateLinearRegression(data) {
+            let n = data.length;
+            if (n === 0) return { m: 0, c: 0 };
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for (let p of data) { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumX2 += p.x * p.x; }
+            let m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            let c = (sumY - m * sumX) / n;
+            return { m, c };
+        }
+
+        function calculatePredictionInterval(data, lr) {
+            let n = data.length;
+            if (n < 3) return [];
+            let meanX = data.reduce((a, p) => a + p.x, 0) / n;
+            let ssxx = data.reduce((a, p) => a + (p.x - meanX) ** 2, 0);
+            let sse = data.reduce((a, p) => a + (p.y - (lr.m * p.x + lr.c)) ** 2, 0);
+            let se = Math.sqrt(sse / (n - 2));
+            let pts = [];
+            for (let x = 1; x <= 5.2; x += 0.2) {
+                let yHat = lr.m * x + lr.c;
+                let me = 1.96 * se * Math.sqrt(1 + 1 / n + (x - meanX) ** 2 / ssxx);
+                pts.push({ x, upper: yHat + me, lower: yHat - me });
+            }
+            return pts;
+        }
+
+        function calculateBlandAltmanData(allDimsData) {
+            let n = allDimsData[0].length;
+            let baData = [];
+            for (let i = 0; i < n; i++) {
+                let psqTotal = 0, mypsqTotal = 0;
+                for (let d = 0; d < 7; d++) { psqTotal += allDimsData[d][i].x; mypsqTotal += allDimsData[d][i].y; }
+                baData.push({ x: (psqTotal / 7 + mypsqTotal / 7) / 2, y: mypsqTotal / 7 - psqTotal / 7 });
+            }
+            return baData;
+        }
+
+        function calculateProportionalBias(baData) {
+            let n = baData.length;
+            let lr = calculateLinearRegression(baData);
+            let meanX = baData.reduce((a, p) => a + p.x, 0) / n;
+            let ssxx = baData.reduce((a, p) => a + (p.x - meanX) ** 2, 0);
+            let sse = baData.reduce((a, p) => a + (p.y - (lr.m * p.x + lr.c)) ** 2, 0);
+            let mse = sse / (n - 2);
+            let seSslope = Math.sqrt(mse / ssxx);
+            let t_slope = lr.m / seSslope;
+            return { slope: lr.m, intercept: lr.c, p: tDistPValue(Math.abs(t_slope), n - 2) };
+        }
+
+        function interpretCorrelation(r) {
+            let a = Math.abs(r);
+            if (a >= 0.90) return "Very strong";
+            if (a >= 0.70) return "Strong";
+            if (a >= 0.40) return "Moderate";
+            if (a >= 0.10) return "Weak";
+            return "Negligible";
+        }
+
+        // --- UI RENDER ---
+
+        function renderDynamicText(allDimsData, baData) {
+            let n = allDimsData[0].length;
+            let alpha = calculateCronbachAlpha(allDimsData);
+            let alphaCI = calculateAlphaCI_Feldt(alpha, allDimsData.length, n);
+            document.querySelectorAll('.dyn_alpha').forEach(el => el.innerText = alpha.toFixed(3));
+            document.querySelectorAll('.dyn_alpha_n').forEach(el => el.innerText = n);
+            document.getElementById('dyn_alpha_ci').innerText = `${alphaCI.lower}–${alphaCI.upper}`;
+
+            let rhos = allDimsData.map(d => calculateSpearman(d));
+            let maxR = Math.max(...rhos), minR = Math.min(...rhos);
+            document.getElementById('dyn_min_rho').innerText = minR.toFixed(3);
+            document.getElementById('dyn_max_rho').innerText = maxR.toFixed(3);
+            document.getElementById('abs_min_rho').innerText = minR.toFixed(3);
+            document.getElementById('abs_max_rho').innerText = maxR.toFixed(3);
+            rhos.forEach((rho, i) => {
+                let el = document.getElementById(`dyn_rho_${i}`);
+                if (el) el.innerText = rho.toFixed(3);
+            });
+
+            let diffSum = baData.reduce((a, p) => a + p.y, 0);
+            let meanDiff = diffSum / n;
+            let sdDiff = Math.sqrt(baData.reduce((a, p) => a + (p.y - meanDiff) ** 2, 0) / (n - 1));
+            let loaU = meanDiff + 1.96 * sdDiff;
+            let loaL = meanDiff - 1.96 * sdDiff;
+            let outsideCount = baData.filter(p => p.y > loaU || p.y < loaL).length;
+            let pctIn = ((n - outsideCount) / n * 100).toFixed(1);
+
+            let bias = calculateProportionalBias(baData);
+            let pText = bias.p < 0.001 ? '< .001' : bias.p.toFixed(3);
+
+            document.getElementById('dyn_ba_mean').innerText = meanDiff.toFixed(3);
+            document.getElementById('dyn_ba_lower').innerText = loaL.toFixed(3);
+            document.getElementById('dyn_ba_upper').innerText = loaU.toFixed(3);
+            document.getElementById('dyn_ba_percent').innerText = pctIn;
+            document.getElementById('dyn_ba_p').innerText = pText;
+        }
+
+        function renderTable(allDimsData) {
+            let n = allDimsData[0].length;
+            document.getElementById('tableN').innerText = `n = ${n}`;
+            document.getElementById('textSampleSize').innerText = `n = ${n}`;
+            let tbody = document.getElementById('correlationTableBody');
+            tbody.innerHTML = '';
+            allDimsData.forEach((dimData, i) => {
+                let rho = calculateSpearman(dimData);
+                let p = calculateSpearmanP(rho, n);
+                let pText = p < 0.001 ? '< .001' : p.toFixed(3);
+                let tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `<td class="py-3 px-4 text-gray-800">${i + 1}. ${dimensions[i].name}</td><td class="py-3 px-4 text-center font-medium">${rho.toFixed(3)}</td><td class="py-3 px-4 text-center">${pText}</td><td class="py-3 px-4 text-left">${interpretCorrelation(rho)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCviTable(cviData) {
+            if (!cviData.length) return;
+            let tbody = document.getElementById('cviTableBody');
+            tbody.innerHTML = '';
+
+            let languages = [...new Set(cviData.map(d => d.lang))];
+            let totalFails = 0;
+            let sumScvi = 0;
+            let sumScviUA = 0;
+
+            languages.forEach(lang => {
+                let langData = cviData.filter(d => d.lang === lang);
+                let passed = 0, failed = 0, sumI = 0;
+                
+                langData.forEach(row => {
+                    let v1 = row.r1 >= 3 ? 1 : 0, v2 = row.r2 >= 3 ? 1 : 0, v3 = row.r3 >= 3 ? 1 : 0;
+                    let icvi = (v1 + v2 + v3) / 3;
+                    sumI += icvi;
+                    if (icvi >= 0.99) passed++; else failed++;
+                });
+                
+                let scvi = sumI / langData.length;
+                let scviUA = (passed / langData.length) * 100;
+
+                totalFails += failed;
+                sumScvi += scvi;
+                sumScviUA += scviUA;
+
+                let tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-gray-800 font-medium">${lang}</td>
+                    <td class="py-3 px-4 text-center">3</td>
+                    <td class="py-3 px-4 text-center">${langData.length}</td>
+                    <td class="py-3 px-4 text-center ${failed > 0 ? 'text-red-600 font-medium' : 'text-gray-500'}">${failed}</td>
+                    <td class="py-3 px-4 text-center font-medium">${scviUA.toFixed(1)}%</td>
+                    <td class="py-3 px-4 text-center font-bold text-blue-700">${scvi.toFixed(3)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            let avgScvi = (sumScvi / languages.length).toFixed(3);
+            let avgScviUA = (sumScviUA / languages.length).toFixed(1);
+
+            document.getElementById('dyn_scvi').innerText = avgScvi;
+            document.getElementById('dyn_scvi_ua').innerText = avgScviUA;
+            document.getElementById('dyn_cvi_fail').innerText = totalFails;
+        }
+
+        function renderScatterPlots(allDimsData) {
+            dimensions.forEach((dim, index) => {
+                let rawData = allDimsData[index];
+                let lr = calculateLinearRegression(rawData);
+                let rho = calculateSpearman(rawData);
+                let subtitle = `Spearman ρ = ${rho.toFixed(3)} | OLS: y = ${lr.m.toFixed(2)}x + ${lr.c.toFixed(2)}`;
+                let ciBounds = calculatePredictionInterval(rawData, lr);
+
+                let scatterData = rawData.map((pt, j) => ({
+                    x: pt.x + (seededRandom(index * 1000 + j) - 0.5) * 0.06,
+                    y: pt.y + (seededRandom(index * 1000 + j + 500) - 0.5) * 0.06,
+                    origX: pt.x, origY: pt.y
+                }));
+
+                if (chartInstances[dim.id]) chartInstances[dim.id].destroy();
+                let ctx = document.getElementById(dim.id).getContext('2d');
+                chartInstances[dim.id] = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { label: 'Data Points', data: scatterData, backgroundColor: dim.color, borderColor: dim.border, borderWidth: 1, pointRadius: 4, pointHoverRadius: 6, order: 2 },
+                            { label: 'OLS Trend Line', data: [{ x: 1, y: lr.m + lr.c }, { x: 5.2, y: lr.m * 5.2 + lr.c }], type: 'line', borderColor: 'rgba(220,38,38,0.8)', borderWidth: 2, pointRadius: 0, fill: false, order: 1 },
+                            { label: 'y = x (Perfect Agreement)', data: [{ x: 1, y: 1 }, { x: 5.2, y: 5.2 }], type: 'line', borderColor: 'rgba(156,163,175,0.8)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 3 },
+                            { label: '95% Prediction Interval', data: ciBounds.map(p => ({ x: p.x, y: p.upper })), type: 'line', borderColor: 'rgba(32,178,170,0.0)', backgroundColor: 'rgba(32,178,170,0.2)', pointRadius: 0, fill: '+1', tension: 0.3, order: 4 },
+                            { label: '95% PI Lower', data: ciBounds.map(p => ({ x: p.x, y: p.lower })), type: 'line', borderColor: 'rgba(32,178,170,0.0)', backgroundColor: 'transparent', pointRadius: 0, fill: false, tension: 0.3, order: 5 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            x: { min: 1, max: 5.2, title: { display: true, text: 'PSQ-18 Score', font: { size: 11, weight: 'bold' } } },
+                            y: { min: 1, max: 5.2, title: { display: true, text: 'MyPSQ Score', font: { size: 11, weight: 'bold' } } }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 15, filter: item => !item.text.includes('Lower') } },
+                            title: { display: true, text: subtitle, font: { size: 12, style: 'italic' }, color: '#4b5563' },
+                            tooltip: { callbacks: { label: ctx => ctx.datasetIndex === 0 ? `PSQ: ${ctx.raw.origX}, MyPSQ: ${ctx.raw.origY}` : ctx.dataset.label } }
+                        }
+                    }
+                });
+            });
+        }
+
+        function renderBlandAltmanPlot(baData) {
+            let n = baData.length;
+            let meanDiff = baData.reduce((a, p) => a + p.y, 0) / n;
+            let sdDiff = Math.sqrt(baData.reduce((a, p) => a + (p.y - meanDiff) ** 2, 0) / (n - 1));
+            let loaU = meanDiff + 1.96 * sdDiff;
+            let loaL = meanDiff - 1.96 * sdDiff;
+
+            let bias = calculateProportionalBias(baData);
+            
+            if (chartInstances['ba']) chartInstances['ba'].destroy();
+            let ctx = document.getElementById('blandAltmanPlot').getContext('2d');
+            chartInstances['ba'] = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Respondents', data: baData, backgroundColor: 'rgba(16,185,129,0.6)', borderColor: 'rgba(6,78,59,0.8)', borderWidth: 1, pointRadius: 5, pointHoverRadius: 7, order: 2 },
+                        { label: `Mean Bias (${meanDiff.toFixed(3)})`, data: [{ x: 1, y: meanDiff }, { x: 5.2, y: meanDiff }], type: 'line', borderColor: 'rgba(0,0,0,0.8)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 3 },
+                        { label: `+1.96 SD (${loaU.toFixed(3)})`, data: [{ x: 1, y: loaU }, { x: 5.2, y: loaU }], type: 'line', borderColor: 'rgba(239,68,68,0.8)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 4 },
+                        { label: `-1.96 SD (${loaL.toFixed(3)})`, data: [{ x: 1, y: loaL }, { x: 5.2, y: loaL }], type: 'line', borderColor: 'rgba(239,68,68,0.8)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 5 },
+                        { label: `OLS Trend Line (Proportional Bias)`, data: [{ x: 1, y: bias.slope * 1 + bias.intercept }, { x: 5.2, y: bias.slope * 5.2 + bias.intercept }], type: 'line', borderColor: 'rgba(59,130,246,0.8)', borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Average Global Score (Mean of PSQ-18 & MyPSQ)', font: { weight: 'bold' } }, min: 1, max: 5.2 },
+                        y: { title: { display: true, text: 'Difference (MyPSQ − PSQ-18)', font: { weight: 'bold' } }, min: -2.5, max: 2.5 }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: ctx => ctx.datasetIndex === 0 ? `Avg: ${ctx.parsed.x.toFixed(2)}, Diff: ${ctx.parsed.y.toFixed(2)}` : ctx.dataset.label } }
+                    }
+                }
+            });
+        }
+
+        function initAll() {
+            let baData = calculateBlandAltmanData(currentScatterData);
+            renderDynamicText(currentScatterData, baData);
+            renderTable(currentScatterData);
+            renderScatterPlots(currentScatterData);
+            renderBlandAltmanPlot(baData);
+            renderCviTable(currentCviData);
+        }
+
+        // --- FILE UPLOADERS ---
+
+        function downloadCSVTemplate() {
+            let h = "psq18_dim1,mypsq_dim1,psq18_dim2,mypsq_dim2,psq18_dim3,mypsq_dim3,psq18_dim4,mypsq_dim4,psq18_dim5,mypsq_dim5,psq18_dim6,mypsq_dim6,psq18_dim7,mypsq_dim7\n";
+            let r = "4.5,5.0,3.5,4.0,4.0,4.0,5.0,5.0,3.0,3.0,4.0,3.0,4.5,4.0\n";
+            triggerDownload(h + r + r, "MyPSQ_Validation_Template.csv");
+        }
+
+        function downloadCVITemplate() {
+            let h = "Language,Item_ID,Expert_1,Expert_2,Expert_3\n";
+            triggerDownload(h + "English,Item_1,4,4,3\nMandarin,Item_1,2,4,3\nTamil,Item_1,4,4,4\n", "MyPSQ_CVI_Template.csv");
+        }
+
+        function triggerDownload(content, filename) {
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        document.getElementById('csvFileInput').addEventListener('change', function (e) {
+            let file = e.target.files[0]; if (!file) return;
+            let reader = new FileReader();
+            reader.onload = ev => {
+                let rows = ev.target.result.trim().split('\n');
+                try {
+                    let newData = [[], [], [], [], [], [], []];
+                    for (let i = 1; i < rows.length; i++) {
+                        if (!rows[i].trim()) continue;
+                        let cols = rows[i].split(',').map(v => parseFloat(v.trim()));
+                        if (cols.length >= 14 && !cols.some(isNaN)) {
+                            for (let d = 0; d < 7; d++) newData[d].push({ x: cols[d * 2], y: cols[d * 2 + 1] });
+                        }
+                    }
+                    if (!newData[0].length) throw new Error("No data");
+                    currentScatterData = newData;
+                    initAll();
+                    showMsg('uploadStatus', 'uploadError');
+                } catch { showMsg('uploadError', 'uploadStatus'); }
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('cviFileInput').addEventListener('change', function (e) {
+            let file = e.target.files[0]; if (!file) return;
+            let reader = new FileReader();
+            reader.onload = ev => {
+                let rows = ev.target.result.trim().split('\n');
+                try {
+                    let newCVI = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        if (!rows[i].trim()) continue;
+                        let cols = rows[i].split(',');
+                        if (cols.length >= 5) newCVI.push({ lang: cols[0].trim(), item: cols[1].trim(), r1: parseInt(cols[2]), r2: parseInt(cols[3]), r3: parseInt(cols[4]) });
+                    }
+                    if (!newCVI.length) throw new Error("No data");
+                    currentCviData = newCVI;
+                    renderCviTable(currentCviData);
+                    showMsg('cviUploadStatus', 'cviUploadError');
+                } catch { showMsg('cviUploadError', 'cviUploadStatus'); }
+            };
+            reader.readAsText(file);
+        });
+
+        function showMsg(show, hide) {
+            let s = document.getElementById(show), h = document.getElementById(hide);
+            s.classList.remove('hidden'); h.classList.add('hidden');
+            setTimeout(() => s.classList.add('hidden'), 4000);
+        }
+
+        initAll();
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"272b1a59b0f742efa35051b742e1b626","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"3cd9079859a04578872fa2f1bf74d8f8","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a084128218d6b4d6',t:'MTc4MDg4MTYwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
