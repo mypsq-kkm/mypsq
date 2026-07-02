@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="ms" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MyPSQ Poster Generator • KKM</title>
+  
+  <!-- Libraries -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Replaced jsDelivr with Cloudflare (cdnjs) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Intro.js for Interactive Tutorial -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --paper-w: 210mm;
+      --paper-h: 297mm;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+    }
+
+    /* A4 Preview Canvas */
+    #a4-paper {
+      width: var(--paper-w);
+      height: var(--paper-h);
+      background: white;
+      color: black;
+      box-shadow: 0 10px 50px -12px rgba(0,0,0,0.8);
+      position: relative;
+      overflow: hidden;
+      transform-origin: top center;
+      transition: transform 0.1s linear;
+      margin: 0 auto; 
+    }
+
+    /* Content Frame */
+    .content-frame {
+      border: 1.5mm solid #000;
+      margin: 10mm;
+      height: calc(100% - 20mm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    /* ── Dark Mode Input Fixes ── */
+    input, select {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border: 1px solid #475569 !important;
+    }
+    input::placeholder { color: #94a3b8 !important; }
+    select option { background-color: #1e293b; color: white; }
+    input:focus, select:focus {
+      border-color: #3b82f6 !important;
+      outline: 2px solid rgba(59, 130, 246, 0.5);
+    }
+
+    /* ── Select2 Dark Mode Styling ── */
+    .select2-container--default .select2-selection--single {
+        background-color: #1e293b !important;
+        border: 1px solid #475569 !important;
+        height: 42px !important;
+        display: flex;
+        align-items: center;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #f8fafc !important;
+        padding-left: 12px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+    }
+    .select2-dropdown {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background-color: #0f172a !important;
+        color: white !important;
+        border: 1px solid #475569 !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6 !important;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #334155 !important;
+    }
+
+     /* ── IntroJS Custom Styling — Dark Glass Theme ── */
+    .introjs-overlay { opacity: 0.65 !important; }
+    .introjs-helperLayer {
+      border-radius: 10px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.65), 0 0 0 3px #3b82f6 !important;
+    }
+    .introjs-tooltip {
+      background: #0f172a !important;
+      border: 1px solid #334155 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(59,130,246,0.2) !important;
+      font-family: 'Inter', sans-serif !important;
+      color: #e2e8f0 !important;
+      min-width: 300px !important;
+      max-width: 360px !important;
+      padding: 0 !important;
+      overflow: hidden;
+    }
+    .introjs-tooltip-header {
+      padding: 16px 18px 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+    .introjs-tooltip-title {
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      color: #f1f5f9 !important;
+      flex: 1 !important;
+    }
+    .introjs-skipbutton {
+      color: #64748b !important;
+      font-size: 18px !important;
+      line-height: 1 !important;
+      width: 28px !important;
+      height: 28px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 50% !important;
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      transition: all 0.15s !important;
+    }
+    .introjs-skipbutton:hover { background: #334155 !important; color: #e2e8f0 !important; }
+    .introjs-tooltiptext {
+      font-size: 13.5px !important;
+      line-height: 1.65 !important;
+      color: #94a3b8 !important;
+      padding: 10px 18px 16px !important;
+    }
+    .introjs-tooltiptext strong { color: #e2e8f0 !important; font-weight: 600 !important; }
+    .introjs-tooltiptext code {
+      background: #1e293b !important;
+      color: #93c5fd !important;
+      padding: 1px 5px !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+    }
+    .introjs-progress {
+      background: #1e293b !important;
+      height: 3px !important;
+      margin: 0 18px 14px !important;
+      border-radius: 99px !important;
+    }
+    .introjs-progressbar { background: #3b82f6 !important; border-radius: 99px !important; }
+    .introjs-tooltipbuttons {
+      background: #0d1626 !important;
+      border-top: 1px solid #1e293b !important;
+      padding: 12px 14px !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      gap: 8px !important;
+    }
+    .introjs-button {
+      border-radius: 8px !important;
+      padding: 7px 16px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      text-shadow: none !important;
+      transition: all 0.15s !important;
+      cursor: pointer !important;
+    }
+    .introjs-prevbutton {
+      background: #1e293b !important;
+      color: #94a3b8 !important;
+      border: 1px solid #334155 !important;
+    }
+    .introjs-prevbutton:hover { background: #334155 !important; color: #e2e8f0 !important; }
+    .introjs-nextbutton, .introjs-donebutton {
+      background: #2563eb !important;
+      color: #fff !important;
+      border: 1px solid #1d4ed8 !important;
+    }
+    .introjs-nextbutton:hover, .introjs-donebutton:hover { background: #1d4ed8 !important; }
+    .introjs-disabled {
+      background: #1e293b !important;
+      color: #475569 !important;
+      border-color: #1e293b !important;
+      cursor: default !important;
+    }
+    .introjs-bullets { display: none !important; }
+    .introjs-arrow { border: 8px solid transparent; }
+    .introjs-arrow.top { border-bottom-color: #0f172a !important; }
+    .introjs-arrow.bottom { border-top-color: #0f172a !important; }
+    .introjs-arrow.left { border-right-color: #0f172a !important; }
+    .introjs-arrow.right { border-left-color: #0f172a !important; }
+
+
+/* ── Typography (Compact v4.5) ── */
+    .text-kkm { font-size: 12pt; font-weight: 700; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .divider { border-top: 2px solid black; width: 85%; margin: 8px 0; }
+    .text-title { font-size: 16pt; font-weight: 900; color: #1e3a8a; line-height: 1.2; margin-top: 5px; text-transform: uppercase; }
+    .text-mypsq { font-size: 24pt; font-weight: 900; color: #64748b; margin-top: 8px; letter-spacing: 1px; }
+    .label-lokasi { font-size: 12pt; font-weight: 700; text-decoration: underline; margin-top: 0; }
+    .text-hospital { font-size: 19pt; font-weight: 900; line-height: 1.1; margin-top: 5px; text-transform: uppercase; width: 100%; }
+    .text-dept { font-size: 15pt; font-weight: 700; color: #1e3a8a; margin-top: 4px; text-transform: uppercase; width: 100%; }
+    .text-type { font-size: 13pt; font-weight: 600; color: #374151; font-style: italic; margin-top: 4px; text-transform: uppercase; }
+    .text-scan { font-size: 13pt; font-weight: 700; margin-bottom: 5px; }
+    .qr-border { border: 2px solid black; padding: 2px; display: inline-block; background: white; }
+    .text-atau { font-size: 14pt; font-weight: 700; margin: 8px 0; }
+    .text-link-label { font-size: 10pt; font-weight: 600; color: #4b5563; }
+    .text-link { font-size: 13pt; font-weight: 700; color: #2563eb; font-family: 'Courier New', Courier, monospace; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+
+  </style>
+</head>
+<body class="flex flex-col min-h-screen md:h-screen md:overflow-hidden">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-700 px-4 py-3 md:px-6 md:py-4 flex items-center justify-between shrink-0 z-30 relative">
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-600 p-2 rounded-lg">
+        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg md:text-xl font-bold text-white tracking-tight leading-tight">MyPSQ Generator</h1>
+        <p class="text-[10px] md:text-xs text-blue-400 font-mono hidden md:block">Kementerian Kesihatan Malaysia</p>
+      </div>
+      <!-- Tutorial Trigger -->
+      <button onclick="startTutorial(true)" class="ml-2 md:ml-4 bg-slate-800 hover:bg-slate-700 text-blue-400 p-1.5 md:p-2 rounded-full transition" title="Papar Tutorial">
+        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </button>
+    </div>
+
+    <button id="step-pdf" onclick="downloadPDF()"
+            class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 shadow-lg transition transform active:scale-95">
+      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      <span class="hidden md:inline">MUAT TURUN PDF</span>
+      <span class="md:hidden">PDF</span>
+    </button>
+  </header>
+
+  <!-- Main Content -->
+  <div class="flex flex-col md:flex-row flex-1 overflow-auto md:overflow-hidden">
+    
+    <aside class="w-full md:w-80 lg:w-96 bg-slate-900 border-b md:border-r border-slate-700 overflow-y-auto z-20 shrink-0">
+      <div class="p-4 md:p-6 space-y-6 md:space-y-8">
+        
+        <!-- SECTION 1 -->
+        <section id="step-lokasi" class="space-y-4">
+          <div class="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider">
+            <span class="bg-blue-900 text-blue-300 w-5 h-5 rounded-full flex items-center justify-center border border-blue-700">1</span>
+            Bahagian 1 — Data Lokasi
+          </div>
+          
+          <div class="space-y-3 md:space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Negeri</label>
+              <select id="state" class="w-full p-2.5 md:p-3 rounded-lg text-sm"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Fasiliti / Hospital</label>
+              <select id="hospital" class="w-full p-2.5 md:p-3 rounded-lg text-sm" disabled>
+                <option value="">— Sila Pilih Negeri Dahulu —</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Jabatan / Unit (Pilihan)</label>
+              <select id="service" class="w-full p-2.5 md:p-3 rounded-lg text-sm">
+                <option value="">— Tiada —</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Perincian Lokasi (cth: Wad 5C)</label>
+              <input id="detail" type="text" class="w-full p-2.5 md:p-3 rounded-lg text-sm" placeholder="Hanya huruf, nombor, ( ) ' -" title="Aksara dibenarkan: Huruf, Nombor, Space, ( ) ' -" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-2">Jenis Pesakit</label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="border border-slate-700 bg-slate-800/50 rounded-lg p-2 md:p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition">
+                  <input type="radio" name="type" value="inpatient" class="accent-blue-500">
+                  <span class="text-xs md:text-sm">Pesakit Dalam</span>
+                </label>
+                <label class="border border-slate-700 bg-slate-800/50 rounded-lg p-2 md:p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition">
+                  <input type="radio" name="type" value="outpatient" class="accent-blue-500">
+                  <span class="text-xs md:text-sm">Pesakit Luar</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr class="border-slate-700" />
+
+        <!-- SECTION 2 -->
+        <section id="step-rekabentuk" class="space-y-4">
+          <div class="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider">
+            <span class="bg-purple-900 text-purple-300 w-5 h-5 rounded-full flex items-center justify-center border border-purple-700">2</span>
+            Bahagian 2 — Reka Bentuk &amp; Pautan Pendek
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Logo Atas (Jata Negara)</label>
+            <input type="file" id="logo" accept="image/png,image/jpeg" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 cursor-pointer"/>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Pautan Pendek (TinyURL)</label>
+            <div class="flex gap-2">
+              <input id="shorturl" type="text" class="flex-1 p-2.5 md:p-3 rounded-lg text-sm font-mono text-blue-300" placeholder="tiny.cc/..." />
+              <button onclick="window.open('https://tinyurl.com/app','_blank')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 rounded-lg text-lg" title="Buka TinyURL">🔗</button>
+            </div>
+          </div>
+        </section>
+
+          <div id="step-salin" class="space-y-2 bg-slate-800 p-3 rounded border border-slate-700">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600 uppercase tracking-wide">Langkah 3</span>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase">Jana dahulu, kemudian salin pautan ini</label>
+          </div>
+          <div class="flex gap-2">
+              <input id="generatedUrl" type="text" readonly class="flex-1 p-1.5 rounded bg-slate-900 text-xs border-none text-slate-400 select-all" placeholder="Klik 'Jana & Kemas Kini' untuk menjana pautan...">
+              <button onclick="copyLink()" class="bg-slate-700 text-white px-2 py-1 rounded text-xs hover:bg-slate-600">Salin</button>
+          </div>
+          <p class="text-[10px] text-slate-500 leading-relaxed">Pendekkan pautan ini di <span class="text-blue-400 font-mono">tinyurl.com</span>, kemudian tampal pautan pendek di Bahagian 2 dan jana semula.</p>
+        </div>
+
+        <button id="step-jana" onclick="generatePreview()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 md:py-4 rounded-xl shadow-lg transition active:scale-95 text-xs md:text-sm uppercase tracking-wide">
+          ⚡ Jana &amp; Kemas Kini Poster
+        </button>
+
+        <div class="h-10 md:hidden"></div>
+      </div>
+    </aside>
+
+    <!-- Preview Area -->
+    <main class="flex-1 bg-[#0f172a] relative flex flex-col items-center justify-start md:justify-center overflow-hidden min-h-[400px]">
+      <div id="preview-wrap" class="w-full h-full p-4 md:p-8 flex items-start md:items-center justify-center overflow-auto">
+        <div id="a4-paper">
+          <div class="content-frame">
+            <div class="w-full flex flex-col items-center pt-8">
+                <div class="h-[35mm] w-full flex items-center justify-center mb-1">
+                    <img id="prevLogo" class="max-h-full max-w-[80%] object-contain hidden" alt="Logo"/>
+                    <div id="noLogo" class="text-xs text-gray-400 border border-dashed border-gray-300 p-4 rounded bg-gray-50">Upload Logo Here</div>
+                </div>
+                <div class="text-kkm text-center">KEMENTERIAN KESIHATAN MALAYSIA</div>
+                <div class="divider"></div>
+                <div class="text-title text-center">BORANG MAKLUM BALAS PENGALAMAN PESAKIT<br>HOSPITAL/INSTITUSI PERUBATAN KHAS KKM</div>
+                <div class="text-mypsq">MyPSQ</div>
+            </div>
+            <div class="flex-grow flex flex-col items-center justify-center w-full px-6">
+                <div class="label-lokasi">LOKASI:</div>
+                <div id="prevHospital" class="text-hospital">—</div>
+                <div id="prevDept" class="text-dept">—</div>
+                <div id="prevType" class="text-type">—</div>
+            </div>
+            <div class="w-full flex flex-col items-center pb-10">
+                <div class="text-scan">IMBAS KOD QR DI BAWAH</div>
+                <div class="qr-frame">
+                    <div id="qrPreview"></div>
+                </div>
+                <div class="text-atau">ATAU</div>
+                <div class="text-link-label">LAYARI PAUTAN:</div>
+                <div id="prevLink" class="text-link mt-1">[PAUTAN PENDEK]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="absolute bottom-6 right-6 z-50">
+        <div class="bg-slate-800/90 backdrop-blur border border-slate-700 rounded-full p-1 flex shadow-xl">
+            <button onclick="zoom(-0.1)" class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-slate-700 text-white transition font-bold text-lg md:text-xl">-</button>
+            <button onclick="zoomFit()" class="px-3 md:px-4 h-8 md:h-10 flex items-center justify-center hover:bg-slate-700 text-white text-[10px] md:text-xs font-bold transition uppercase border-x border-slate-700 mx-1">Fit</button>
+            <button onclick="zoom(0.1)" class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-slate-700 text-white transition font-bold text-lg md:text-xl">+</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="qrHidden" class="hidden"></div>
+
+<script>
+const states = {
+    "Johor": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Kedah": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Kelantan": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Melaka": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Negeri Sembilan": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Pahang": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Perak": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Perlis": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Pulau Pinang": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Sabah": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Sarawak": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Selangor": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "Terengganu": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "W.P. Kuala Lumpur (HKL-HTA-IPR)": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "JKWPKL&P": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "W.P. Labuan": "https://mypsq-kkm.github.io/mypsq/form.html",
+    "W.P. Putrajaya (IKN)": "https://mypsq-kkm.github.io/mypsq/form.html"
+};
+
+const hospitals = { 
+  Johor: [
+    "Hospital Sultan Ismail, Johor Bahru",
+    "Hospital Pakar Sultanah Fatimah, Muar",
+    "Hospital Enche' Besar Hajjah Khalsom",
+    "Hospital Pasir Gudang",
+    "Hospital Temenggong Seri Maharaja Tun Ibrahim, Kulai",
+    "Hospital Segamat",
+    "Hospital Pontian",
+    "Hospital Sultanah Nora Ismail",
+    "Hospital Tangkak",
+    "Hospital Sultanah Aminah, Johor Bahru",
+    "Hospital Mersing",
+    "Hospital Kota Tinggi",
+    "Hospital Permai"
+  ],
+
+  Kedah: [
+    "Hospital Yan",
+    "Hospital Sultanah Bahiyah",
+    "Hospital Sultanah Maliha",
+    "Hospital Kulim",
+    "Hospital Sultan Abdul Halim",
+    "Hospital Jitra",
+    "Hospital Kuala Nerang",
+    "Hospital Sik",
+    "Hospital Pendang",
+    "Hospital Baling"
+  ],
+
+  Kelantan: [
+    "Hospital Tengku Anis, Pasir Puteh",
+    "Hospital Raja Perempuan Zainab II, Kota Bharu",
+    "Hospital Tumpat",
+    "Hospital Sultan Ismail Petra, Kuala Krai",
+    "Hospital Tanah Merah",
+    "Hospital Jeli",
+    "Hospital Machang",
+    "Hospital Pasir Mas",
+    "Hospital Gua Musang",
+    "Hospital Bachok"
+  ],
+
+  "JKWPKL&P": [
+    "Hospital Rehabilitasi Cheras",
+    "Hospital Putrajaya"    
+  ],
+
+  Melaka: [
+    "Hospital Melaka",
+    "Hospital Jasin",
+    "Hospital Alor Gajah"
+  ],
+
+  "Negeri Sembilan": [
+    "Hospital Port Dickson",
+    "Hospital Tuanku Ja'afar, Seremban",
+    "Hospital Rembau",
+    "Hospital Tampin",
+    "Hospital Tuanku Ampuan Najihah, Kuala Pilah",
+    "Hospital Jelebu",
+    "Hospital Jempol"
+  ],
+
+  Pahang: [
+    "Hospital Tengku Ampuan Afzan, Kuantan",
+    "Hospital Sultan Hj Ahmad Shah, Temerloh",
+    "Hospital Kuala Lipis",
+    "Hospital Raub",
+    "Hospital Rompin",
+    "Hospital Muadzam Shah",
+    "Hospital Pekan",
+    "Hospital Jengka",
+    "Hospital Bentong",
+    "Hospital Sultanah Hajjah Kalsom, Cameron Highlands",
+    "Hospital Bera",
+    "Hospital Jerantut"
+  ],
+
+  Perak: [
+    "Hospital Tapah",
+    "Hospital Kampar",
+    "Hospital Raja Permaisuri Bainun",
+    "Hospital Slim River",
+    "Hospital Teluk Intan",
+    "Hospital Seri Manjung",
+    "Hospital Taiping",
+    "Hospital Gerik",
+    "Hospital Seri Iskandar",
+    "Hospital Batu Gajah",
+    "Hospital Selama",
+    "Hospital Parit Buntar",
+    "Hospital Sungai Siput",
+    "Hospital Kuala Kangsar",
+    "Hospital Bahagia Ulu Kinta"
+  ],
+
+  Perlis: [
+    "Hospital Tuanku Fauziah"
+  ],
+
+  "Pulau Pinang": [
+    "Hospital Kepala Batas",
+    "Hospital Pulau Pinang",
+    "Hospital Seberang Jaya",
+    "Hospital Sungai Bakap",
+    "Hospital Bukit Mertajam",
+    "Hospital Balik Pulau"
+  ],
+
+  Sabah: [
+    "Hospital Kota Marudu",
+    "Hospital Beaufort",
+    "Hospital Queen Elizabeth II",
+    "Hospital Queen Elizabeth",
+    "Hospital Tawau",
+    "Hospital Lahad Datu",
+    "Hospital Duchess Of Kent",
+    "Hospital Keningau",
+    "Hospital Beluran",
+    "Hospital Ranau",
+    "Hospital Kinabatangan",
+    "Hospital Kudat",
+    "Hospital Tambunan",
+    "Hospital Tuaran",
+    "Hospital Kunak",
+    "Hospital Kota Belud",
+    "Hospital Kuala Penyu",
+    "Hospital Pitas",
+    "Hospital Semporna",
+    "Hospital Papar",
+    "Hospital Tenom",
+    "Hospital Sipitang",
+    "Hospital Mesra Bukit Padang",
+    "Hospital Wanita & Kanak-Kanak, Likas"
+  ],
+
+  Sarawak: [
+    "Hospital Daro",
+    "Hospital Rajah Charles Brooke Memorial",
+    "Hospital Umum Sarawak",
+    "Hospital Miri",
+    "Hospital Bintulu",
+    "Hospital Sibu",
+    "Hospital Sri Aman",
+    "Hospital Marudi",
+    "Hospital Bau",
+    "Hospital Serian",
+    "Hospital Mukah",
+    "Hospital Limbang",
+    "Hospital Kapit",
+    "Hospital Saratok",
+    "Hospital Sarikei",
+    "Hospital Betong",
+    "Hospital Lundu",
+    "Hospital Simunjan",
+    "Hospital Lawas",
+    "Hospital Kanowit",
+    "Hospital Dalat",
+    "Hospital Sentosa",
+    "Pusat Jantung Sarawak"
+  ],
+
+  Selangor: [
+    "Hospital Sungai Buloh",
+    "Hospital Shah Alam",
+    "Hospital Banting",
+    "Hospital Ampang",
+    "Hospital Sultan Idris Shah",
+    "Hospital Kuala Kubu Baru",
+    "Hospital Selayang",
+    "Hospital Orang Asli, Gombak",
+    "Hospital Tanjong Karang",
+    "Hospital Tengku Ampuan Jemaah, Sabak Bernam",
+    "Hospital Tengku Ampuan Rahimah",
+    "Hospital Tengku Permaisuri Norashikin",
+    "Hospital Cyberjaya"
+  ],
+
+  Terengganu: [
+    "Hospital Sultanah Nur Zahirah",
+    "Hospital Hulu Terengganu",
+    "Hospital Setiu",
+    "Hospital Dungun",
+    "Hospital Besut",
+    "Hospital Kemaman"
+  ],
+
+  "W.P. Kuala Lumpur (HKL-HTA-IPR)": [
+    "Hospital Kuala Lumpur",
+    "Institut Perubatan Respiratori",
+    "Hospital Tunku Azizah"
+  ],
+
+  "W.P. Labuan": [
+    "Hospital Labuan"
+  ],
+
+  "W.P. Putrajaya (IKN)": [
+    "Institut Kanser Negara"
+  ]
+};
+
+Object.keys(hospitals).forEach(states => {
+  hospitals[states].sort();
+});
+
+const services = [
+  "Dermatologi (Dermatology)",
+  "Endokrinologi (Endocrinology)",
+  "Endodontik (Endodontics)",
+  "Epidemiologi Penyakit Tidak Berjangkit (Non-Communicable Disease Epidemiology)",
+  "Gastroenterologi & Hepatologi (Gastroenterology & Hepatology)",
+  "Genetik Klinikal (Clinical Genetics)",
+  "Geriatrik (Geriatric)",
+  "Hematologi (Haematology)",
+  "Jabatan Kecemasan & Trauma (Emergency Medicine)",
+  "Kardiologi (Cardiology)",
+  "Kardiologi Pediatrik (Paediatric Cardiology)",
+  "Kecemasan Pediatrik (Paediatric Emergency Medicine)",
+  "Kesihatan Awam Pergigian (Dental Public Health)",
+  "Nefrologi (Nephrology)",
+  "Neonatologi (Neonatology)",
+  "Neurologi (Neurology)",
+  "Neuroketidakupayaan & Pemulihan Pediatrik (Paediatric Neuro-disability & Rehabilitation)",
+  "Odontologi Forensik (Forensic Odontology)",
+  "Onkologi (Oncology)",
+  "Ortodontik (Orthodontics)",
+  "Pediatrik (Paediatric)",
+  "Penyakit Berjangkit (Infectious Disease)",
+  "Pergigian Keperluan Khas (Special Care Dentistry)",
+  "Pergigian Pediatrik (Paediatric Dentistry)",
+  "Pergigian Restoratif (Restorative Dentistry)",
+  "Periodontologi (Periodontology)",
+  "Perubatan Am (General Medicine)",
+  "Perubatan Dalaman Akut (Acute Internal Medicine)",
+  "Perubatan Forensik (Forensic Medicine)",
+  "Perubatan Ibu & Janin (Maternal Fetal Medicine)",
+  "Perubatan Keluarga (Family Medicine)",
+  "Perubatan Nuklear (Nuclear Medicine)",
+  "Perubatan Paliatif (Palliative Medicine)",
+  "Perubatan Pemulihan (Rehabilitation Medicine)",
+  "Perubatan Remaja (Adolescent Medicine)",
+  "Perubatan Reproduktif (Reproductive Medicine)",
+  "Perubatan Respiratori (Respiratory Medicine)",
+  "Perubatan Sukan (Sports Medicine)",
+  "Prostodontik (Prosthodontics)",
+  "Psikiatri (Psychiatry)",
+  "Radioterapi (Radiotherapy)",
+  "Reumatologi (Rheumatology)",
+  "Teranostik (Theranostics)",
+  "Neurosurgeri (Neurosurgery)",
+  "Obstetrik & Ginekologi (Obstetrics & Gynaecology)",
+  "Oftalmologi (Ophthalmology)",
+  "Onkologi Ginekologi (Gynae-Oncology)",
+  "Ortopedik (Orthopaedics)",
+  "Otorinolaringologi (Otorhinolaryngology)",
+  "Pembedahan Am (General Surgery)",
+  "Pembedahan Gastrointestinal Atas (Upper GI Surgery)",
+  "Pembedahan Hepatobiliari (Hepatobiliary Surgery)",
+  "Pembedahan Kardiotorasik (Cardiothoracic Surgery)",
+  "Pembedahan Kolorektal (Colorectal Surgery)",
+  "Pembedahan Luka Terbakar & Trauma (Burn & Trauma Surgery)",
+  "Pembedahan Onkologi Pediatrik (Paediatric Surgical Oncology)",
+  "Pembedahan Oral & Maksilofasial (Oral and Maxillofacial Surgery)",
+  "Pembedahan Payudara & Endokrin (Breast & Endocrine Surgery)",
+  "Pembedahan Pediatrik (Paediatric Surgery)",
+  "Pembedahan Plastik & Rekonstruktif (Plastic & Reconstructive Surgery)",
+  "Pembedahan Trauma (Trauma Surgery)",
+  "Pembedahan Trauma Kraniomaksilofasial & Tulang (Craniomaxillofacial Trauma and Bone Surgery)",
+  "Pembedahan Tulang Belakang (Spine Surgery)",
+  "Pembedahan Vaskular (Vascular Surgery)",
+  "Trauma Muskuloskeletal Lanjutan (Advanced Musculoskeletal Trauma)",
+  "Uroginekologi (Uro-gynaecology)",
+  "Urologi (Urology)",
+  "Urologi Rekonstruktif Pediatrik (Paediatric Reconstructive Urology)",
+  "Anestesia Jantung (Cardiac Anaesthesia)",
+  "Anestesia Vaskular (Vascular Anaesthesia)",
+  "Anestesiologi (Anaesthesiology)",
+  "Jabatan Dietetik & Sajian (Dietetics & Food Services Department)",
+  "Jabatan Farmasi (Pharmacy Department)",
+  "Jabatan Kerja Sosial Perubatan (Medical Social Work Department)",
+  "Jabatan Pesakit Luar (Outpatient Department)",
+  "Jabatan Radiologi (Radiology)",
+  "Jabatan Rekod Perubatan (Medical Records Department)",
+  "Kesihatan Pekerjaan (Occupational Health)",
+  "Kesihatan Persekitaran (Environmental Health)",
+  "Mikrobiologi Perubatan (Medical Microbiology)",
+  "Patologi (Pathology)",
+  "Patologi Anatomi (Anatomical Pathology)",
+  "Patologi Forensik (Forensic Pathology)",
+  "Patologi Genetik (Genetic Pathology)",
+  "Patologi Kimia (Chemical Pathology)",
+  "Perkhidmatan Kesihatan Bersekutu (Allied Health Services)",
+  "Perkhidmatan Pesakit Bayar Penuh (Full Paying Patient)",
+  "Perubatan Transfusi (Transfusion Medicine)",
+  "Pusat Anggota Palsu (Artificial Limb Centre)",
+  "Radiologi Intervensi (Interventional Radiology)",
+  "Radiologi Jantung (Cardiac Radiology)",
+  "Radiologi Oral & Maksilofasial (Oral and Maxillofacial Radiology)",
+  "Radiologi Payudara (Breast Radiology)",
+  "Radiologi Pediatrik (Paediatric Radiology)",
+  "Tabung Darah (Blood Bank)",
+  "Unit Bekalan Steril Berpusat (Central Sterile Supply Department)",
+  "Unit Casemix (Casemix Unit)",
+  "Unit Fisioterapi (Physiotherapy Unit)",
+  "Unit Hemodialisis (Hemodialysis Unit)",
+  "Unit Kawalan Infeksi (Infection Control Unit)",
+  "Unit Kejuruteraan (Engineering Unit)",
+  "Unit Kejururawatan (Nursing Unit)",
+  "Unit Keselamatan & Kesihatan Pekerjaan (Occupational Safety & Health Unit)",
+  "Unit Kesihatan Awam (Public Health Unit)",
+  "Unit Kewangan & Hasil (Finance & Revenue Unit)",
+  "Unit Medikolegal (Medicolegal Unit)",
+  "Unit Pendidikan Kesihatan (Health Education Unit)",
+  "Unit Pendidikan Perubatan Berterusan (Continuous Medical Education Unit)",
+  "Unit Pengurusan Kualiti (Quality Management Unit)",
+  "Unit Penjagaan Luka (Wound Care Unit)",
+  "Unit Penolong Pegawai Perubatan (Assistant Medical Officer Unit)",
+  "Unit Pentadbiran & Pembangunan (Administration & Development Unit)",
+  "Unit Perhubungan Awam (Public Relations Unit)",
+  "Unit Perolehan & Aset (Procurement & Asset Unit)",
+  "Unit Psikologi & Kaunseling (Psychology & Counselling Unit)",
+  "Unit Rawatan Harian (Daycare Unit)",
+  "Unit Sumber Manusia (Human Resources Unit)",
+  "Unit Teknologi Maklumat (Information Technology Unit)",
+  "Unit Terapi Carakerja (Occupational Therapy Unit)",
+  "Lain-lain (Others)"
+];
+
+// ─── INITIALIZATION ────────────────────────────────
+const el = {
+  state    : document.getElementById('state'),
+  hospital : document.getElementById('hospital'),
+  service  : document.getElementById('service'),
+  detail   : document.getElementById('detail'),
+  type     : document.getElementsByName('type'),
+  shorturl : document.getElementById('shorturl'),
+  logo     : document.getElementById('logo'),
+  prevLogo   : document.getElementById('prevLogo'),
+  noLogo     : document.getElementById('noLogo'),
+  qrPreview  : document.getElementById('qrPreview'),
+  prevHospital: document.getElementById('prevHospital'),
+  prevDept   : document.getElementById('prevDept'),
+  prevType   : document.getElementById('prevType'),
+  prevLink   : document.getElementById('prevLink'),
+  a4Paper    : document.getElementById('a4-paper'),
+  previewWrap: document.getElementById('preview-wrap'),
+  generatedUrl: document.getElementById('generatedUrl')
+};
+
+let logoDataURL = null;
+let currentScale = 0.5;
+
+function init() {
+  el.state.add(new Option("— Sila Pilih Negeri —", "", true, true));
+  el.state.options[0].disabled = true;
+  Object.keys(states).forEach(s => el.state.add(new Option(s, s)));
+
+  services.forEach(s => el.service.add(new Option(s, s)));
+
+  // === Enable Select2 Search for Jabatan ===
+  $(document).ready(function() {
+      $('#service').select2({
+          placeholder: "— Taip untuk cari Jabatan —",
+          allowClear: true,
+          width: '100%'
+      });
+  });
+
+  el.state.onchange = () => {
+    const st = el.state.value;
+    el.hospital.innerHTML = '<option value="" selected disabled>— Sila Pilih Hospital —</option>';
+    el.hospital.disabled = !st;
+    if (st && hospitals[st]) hospitals[st].forEach(h => el.hospital.add(new Option(h, h)));
+  };
+
+  el.logo.onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      logoDataURL = ev.target.result;
+      el.prevLogo.src = logoDataURL;
+      el.prevLogo.classList.remove('hidden');
+      el.noLogo.classList.add('hidden');
+    };
+    r.readAsDataURL(f);
+  };
+  
+  el.detail.addEventListener('input', function(e) {
+      let val = e.target.value;
+      e.target.value = val.replace(/[^a-zA-Z0-9\s\(\)\'\-]/g, '');
+  });
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(zoomFit, 150);
+  });
+  
+  setTimeout(zoomFit, 200);
+
+  // IntroJS Tutorial Trigger
+  if (!localStorage.getItem('mypsq-tutorial-seen')) {
+      setTimeout(() => startTutorial(false), 500);
+  }
+}
+
+// ─── TUTORIAL LOGIC ────────────────────────────────
+function startTutorial(force = false) {
+    if (!force && localStorage.getItem('mypsq-tutorial-seen')) return;
+
+    introJs().setOptions({
+steps: [
+            {
+                title: "Selamat Datang ke MyPSQ Generator",
+                intro: `<strong>Apakah fungsi sistem ini?</strong><br><br>Sistem ini membantu anda menjana <strong>pautan borang maklum balas</strong> dan <strong>poster Kod QR</strong> MyPSQ yang khusus untuk fasiliti anda — sedia untuk dicetak dalam masa kurang daripada satu minit.<br><br>Sila ikuti panduan ringkas ini untuk memulakan.`
+            },
+            {
+                element: '#step-lokasi',
+                title: "Bahagian 1 — Data Lokasi",
+                intro: `Pilih <strong>Negeri</strong> dan <strong>Hospital/Fasiliti</strong> anda terlebih dahulu.<br><br>Maklumat tambahan (pilihan):<br>• <strong>Jabatan/Unit</strong> — pilih daripada senarai atau taip untuk membuat carian<br>• <strong>Perincian Lokasi</strong> — nyatakan nama wad atau bilik (cth: <code>Wad 5C</code>)<br>• <strong>Jenis Pesakit</strong> — Pesakit Dalam atau Pesakit Luar`,
+                position: 'right'
+            },
+            {
+                element: '#step-rekabentuk',
+                title: "Bahagian 2 — Reka Bentuk & Pautan Pendek",
+                intro: `<strong>Logo (Pilihan):</strong> Muat naik imej Jata Negara atau logo hospital. Imej tersebut akan dipaparkan di bahagian atas poster.<br><br><strong>Pautan Pendek:</strong> Setelah pautan panjang dijana (lihat Langkah 3), pendekkan pautan tersebut di <code>tinyurl.com</code> dan masukkan semula di sini agar pautan yang lebih kemas terpapar pada poster.`,
+                position: 'right'
+            },
+            {
+                element: '#step-salin',
+                title: "Langkah 3 — Jana & Salin Pautan",
+                intro: `Klik butang <strong>Jana & Kemas Kini Poster</strong> di bawah kotak ini untuk menjana pautan sistem.<br><br>Pautan panjang akan terpapar dalam kotak ini. <strong>Salin</strong> pautan tersebut, kemudian pendekkan di <code>tinyurl.com</code>.<br><br>Setelah mendapat pautan pendek, tampalkan ke kotak <em>Pautan Pendek</em> di Bahagian 2 dan klik jana semula.`,
+                position: 'right'
+            },
+            {
+                element: '#step-jana',
+                title: "Langkah 4 — Jana Poster",
+                intro: `Klik butang ini untuk membina pratonton poster.<br><br>Poster lengkap beserta <strong>Kod QR</strong> akan dipaparkan di sebelah kanan skrin. Kod QR ini mengandungi pautan terus ke borang maklum balas MyPSQ fasiliti anda.<br><br>Butang ini boleh diklik semula pada bila-bila masa selepas sebarang perubahan dibuat.`,
+                position: 'right'
+            },
+            {
+                element: '#step-pdf',
+                title: "Langkah 5 — Muat Turun PDF",
+                intro: `Apabila pratonton poster telah memuaskan, klik butang ini untuk memuat turun fail <strong>PDF bersaiz A4</strong>.<br><br>Fail PDF yang dijana sedia untuk dihantar ke pusat percetakan atau dicetak terus daripada komputer anda. Selesai! ✅`,
+                position: 'bottom'
+            }
+        ],
+        showProgress: true,
+        showBullets: false,
+        skipLabel: '✕',
+        nextLabel: 'Seterusnya →',
+        prevLabel: '← Sebelumnya',
+        doneLabel: '✓ Faham!',
+        exitOnOverlayClick: false,
+        scrollToElement: true,
+        scrollPadding: 80
+    }).onbeforechange(function(el) {
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }).oncomplete(function() {
+        localStorage.setItem('mypsq-tutorial-seen', 'true');
+    }).onexit(function() {
+        localStorage.setItem('mypsq-tutorial-seen', 'true');
+    }).start();
+}
+
+// ─── GENERATE PREVIEW ──────────────────────────────
+function getFormData() {
+  const state = el.state.value;
+  if (!state || !el.hospital.value) {
+    alert("Sila pilih Negeri dan Hospital.");
+    return null;
+  }
+
+  let typ = "";
+  for (let r of el.type) if (r.checked) typ = r.value;
+
+  const params = new URLSearchParams();
+  params.set('state', state);
+  params.set('hospital', el.hospital.value);
+  if (typ) params.set('treatment', typ);
+  if (el.detail.value.trim()) params.set('treatmentText', el.detail.value.trim());
+  
+  // Get value from Select2 instead of direct element if active
+  const serviceVal = $('#service').val();
+  if (serviceVal) params.set('service', serviceVal);
+
+  const url = `${states[state]}?${params.toString()}`;
+  return { 
+      url, 
+      hospital: el.hospital.value, 
+      service: serviceVal, 
+      detail: el.detail.value.trim(), 
+      type: typ, 
+      shorturl: el.shorturl.value 
+  };
+}
+
+function generatePreview() {
+  const data = getFormData();
+  if (!data) return;
+
+  el.generatedUrl.value = data.url;
+
+  // --- NEW LOGIC: Prevent QR Overflow Crash ---
+  // Jika ada pautan pendek, gunakan ia. Jika tiada, guna teks dummy sementara.
+  let qrDataToRender = data.shorturl.trim() !== "" ? data.shorturl.trim() : "SILA_PENDEKKAN_PAUTAN_DI_TINYURL";
+
+  document.getElementById('qrHidden').innerHTML = '';
+  new QRCode(document.getElementById('qrHidden'), {
+    text: qrDataToRender, 
+    width: 600, height: 600,
+    colorDark: "#000000", colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M // Ditukar ke M untuk kapasiti lebih besar
+  });
+
+  el.qrPreview.innerHTML = '';
+  new QRCode(el.qrPreview, {
+    text: qrDataToRender, 
+    width: 220, height: 220,
+    colorDark: "#000000", colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M // Ditukar ke M untuk kapasiti lebih besar
+  });
+
+  el.prevHospital.textContent = data.hospital.toUpperCase();
+  let deptInfo = data.service || '';
+  if (data.detail) deptInfo += (deptInfo ? ` – ${data.detail}` : data.detail);
+  el.prevDept.textContent = deptInfo ? deptInfo.toUpperCase() : "—";
+  el.prevType.textContent = data.type ? `(${data.type === 'inpatient' ? 'PESAKIT DALAM' : 'PESAKIT LUAR'})` : "—";
+  el.prevLink.textContent = data.shorturl.trim() ? data.shorturl.trim() : "[PAUTAN PENDEK]";
+
+  zoomFit();
+}
+
+function copyLink() {
+    el.generatedUrl.select();
+    navigator.clipboard.writeText(el.generatedUrl.value);
+    alert("Pautan panjang disalin!");
+}
+
+// ─── ZOOMING ───────────────────────────────────────
+function zoom(delta) {
+  currentScale += delta;
+  currentScale = Math.min(Math.max(0.2, currentScale), 2);
+  el.a4Paper.style.transform = `scale(${currentScale})`;
+}
+
+function zoomFit() {
+  const wrap = document.getElementById('preview-wrap');
+  const paper = document.getElementById('a4-paper');
+  if (!wrap || !paper) return;
+  const availW = wrap.clientWidth  - 40; 
+  const availH = wrap.clientHeight - 40;
+  const ratioW = availW / 794;  
+  const ratioH = availH / 1123;
+  const isMobile = window.innerWidth < 768;
+  currentScale = Math.min(ratioW, ratioH, 1.2);
+  if (isMobile) currentScale *= 0.95;
+  zoom(0);
+}
+
+// ─── PDF GENERATION ───────────────────────────────
+async function downloadPDF() {
+  const data = getFormData();
+  if (!data) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const w = 210, h = 297, cx = w / 2, margin = 10; 
+  doc.setLineWidth(0.6); doc.setDrawColor(0);
+  doc.rect(margin, margin, w - (margin * 2), h - (margin * 2));
+  let cursorY = margin + 15; 
+  if (logoDataURL) {
+    const img = await loadImage(logoDataURL);
+    const maxH = 30; let iw = 50; let ih = iw * (img.height / img.width);
+    if (ih > maxH) { ih = maxH; iw = ih * (img.width / img.height); }
+    doc.addImage(img, 'PNG', cx - (iw/2), cursorY, iw, ih);
+    cursorY += ih + 5;
+  } else { cursorY += 25; }
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+  doc.text("KEMENTERIAN KESIHATAN MALAYSIA", cx, cursorY, { align: "center" });
+  cursorY += 4;
+  doc.setLineWidth(0.5); doc.line(cx - 70, cursorY, cx + 70, cursorY);
+  cursorY += 8;
+  doc.setFontSize(16); doc.setTextColor(30, 64, 175);
+  doc.text("BORANG MAKLUM BALAS PENGALAMAN PESAKIT", cx, cursorY, { align: "center" });
+  cursorY += 8; doc.text("HOSPITAL/INSTITUSI PERUBATAN KHAS KKM", cx, cursorY, { align: "center" });
+  cursorY += 10; doc.setFontSize(24); doc.setTextColor(100, 100, 100); 
+  doc.text("MyPSQ", cx, cursorY, { align: "center" });
+  let footerBottom = h - margin - 15; 
+  const linkText = data.shorturl.trim();
+  let currentY = footerBottom;
+  if (linkText) {
+      doc.setFontSize(13); doc.setTextColor(29, 78, 216); 
+      const linkLines = doc.splitTextToSize(linkText, w - 40);
+      const linkBlockHeight = linkLines.length * 6;
+      doc.text(linkLines, cx, footerBottom - linkBlockHeight + 6, { align: "center" });
+      currentY -= linkBlockHeight;
+      doc.setFontSize(10); doc.setTextColor(75, 85, 99); doc.setFont("helvetica", "bold"); 
+      doc.text("LAYARI PAUTAN:", cx, currentY - 3, { align: "center" });
+      currentY -= 12;
+      doc.setFontSize(14); doc.setTextColor(0);
+      doc.text("ATAU", cx, currentY, { align: "center" });
+      currentY -= 8; 
+  }
+  const qrSize = 70; const qrTop = currentY - qrSize - 4; 
+  const qrCanvas = document.querySelector('#qrHidden canvas');
+  if (qrCanvas) {
+      doc.setLineWidth(0.7); doc.setDrawColor(0);
+      doc.rect(cx - (qrSize/2) - 2, qrTop - 2, qrSize + 4, qrSize + 4);
+      doc.addImage(qrCanvas.toDataURL('image/png'), 'PNG', cx - (qrSize/2), qrTop, qrSize, qrSize);
+  }
+  currentY = qrTop - 10;
+  doc.setFontSize(13); doc.setTextColor(0);
+  doc.text("IMBAS KOD QR DI BAWAH", cx, currentY, { align: "center" });
+  let spaceTop = cursorY + 15; let spaceBottom = currentY - 10; 
+  let middleY = spaceTop + (spaceBottom - spaceTop) / 2;
+  if (middleY < spaceTop) middleY = spaceTop; 
+  doc.setTextColor(0); doc.setFontSize(12);
+  doc.text("LOKASI:", cx, middleY - 20, { align: "center" });
+  doc.setFontSize(19); doc.setFont("helvetica", "bold");
+  const hospLines = doc.splitTextToSize(data.hospital.toUpperCase(), w - 40);
+  doc.text(hospLines, cx, middleY - 8, { align: "center" });
+  let nextY = middleY - 8 + (hospLines.length * 8) + 2; 
+  let deptStr = data.service || '';
+  if (data.detail) deptStr += deptStr ? ` – ${data.detail}` : data.detail;
+  if (deptStr) {
+      doc.setFontSize(15); doc.setTextColor(30, 64, 175);
+      const deptLines = doc.splitTextToSize(deptStr.toUpperCase(), w - 40);
+      doc.text(deptLines, cx, nextY, { align: "center" });
+      nextY += (deptLines.length * 7) + 2;
+  }
+  if (data.type) {
+      doc.setFontSize(13); doc.setTextColor(75, 85, 99); doc.setFont("helvetica", "italic");
+      const typeStr = `(${data.type==='inpatient'?'PESAKIT DALAM':'PESAKIT LUAR'})`;
+      doc.text(typeStr, cx, nextY, { align: "center" });
+  }
+  doc.save(`Poster_${data.hospital.replace(/[^a-z0-9]/gi,'_')}.pdf`);
+}
+
+function loadImage(src) {
+  return new Promise((r, e) => {
+    const i = new Image(); i.crossOrigin = "Anonymous";
+    i.onload = () => r(i); i.onerror = e; i.src = src;
+  });
+}
+
+init();
+</script>
+</body>
+</html>
